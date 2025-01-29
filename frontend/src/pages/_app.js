@@ -1,9 +1,16 @@
-import '@/styles/globals.css'
+import "../styles/globals.css";
+import Navbar from "../components/Navbar";
+import { useRouter } from "next/router";
 
-export default function App({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
+  const router = useRouter();
+  const noNavbarRoutes = ["/register", "/login"]; 
   return (
-    <main className="min-h-screen">
+    <div>
+      {!noNavbarRoutes.includes(router.pathname) && <Navbar />}
       <Component {...pageProps} />
-    </main>
-  )
+    </div>
+  );
 }
+
+export default MyApp;
