@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -21,18 +22,67 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Logo */}
-      <div className="absolute top-6 left-8">
-        <h1 className="text-4xl font-bold text-blue-600" style={{ fontFamily: "'Righteous', cursive" }}>
+    <div className="min-h-screen flex">
+  {/* Left Side: Message Section */}
+  <div className="w-2/5 bg-gradient-to-b from-blue-500 to-blue-700 text-white p-8 flex flex-col justify-center items-center">
+  <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: "'Righteous', cursive" }}>
           BeBetter
         </h1>
-      </div>
+    
+  <h1 className="text-4xl mb-4 p-10">A Path to Better Living</h1>
+  
+  <ul className="space-y-6">
+  <li className="flex items-start space-x-4">
+    <img
+      src="/images/graph.png"
+      alt="Track Progress Icon"
+      className="w-10 h-10 rounded-full" 
+    />
+    <div>
+      <h3 className="font-semibold text-xl">Track progress</h3>
+      <p className="text-md mt-2">Stay on top of your goals with our easy-to-use progress tracker, designed to keep you motivated and on track.</p>
+    </div>
+  </li>
 
-      {/* Login */}
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+  <li className="flex items-start space-x-4">
+    <img
+      src="/images/friend.png"
+      alt="Connect with Others Icon"
+      className="w-10 h-10 rounded-full"
+    />
+    <div>
+      <h3 className="font-semibold text-xl">Connect with others</h3>
+      <p className="text-md mt-2">Join a community that supports your journey to better sleep, mindfulness, and well-being.</p>
+    </div>
+  </li>
+
+  <li className="flex items-start space-x-4">
+    <img
+      src="/images/personalization.png"
+      alt="Personalized Recommendations Icon"
+      className="w-10 h-10 rounded-full" 
+    />
+    <div>
+      <h3 className="font-semibold text-xl">Personalized recommendations</h3>
+      <p className="text-md mt-2">Receive tailored recommendations based on your preferences and progress to enhance mindfulness and well-being.</p>
+    </div>
+  </li>
+</ul>
+
+</div>
+
+      {/* Right Side: Login Form Section */}
+      <div className="w-3/5 flex items-center justify-center bg-gray-100 p-8">
+        <div className="bg-white p-12 rounded-xl shadow-lg w-full max-w-md">
+          <h2 className="text-2xl mb-6 text-center">Login to your account</h2>
+          
+          <p className="text-center mb-4 text-sm">
+            <span>Don't have an account? </span>
+            <Link href="/register" className="text-blue-600 hover:underline">
+              Register here
+            </Link>
+          </p>
+          
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Email */}
             <div className="mb-4">
@@ -93,21 +143,10 @@ const Login = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="w-full bg-blue-600 text-white p-4 rounded-lg font-medium hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               Login
             </button>
-
-            {/* Register Link */}
-            <div className="mt-4 text-center text-sm text-gray-600">
-              Don't have an account?{" "}
-              <a 
-                href="/register" 
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Register here
-              </a>
-            </div>
           </form>
 
           {/* Toast */}
