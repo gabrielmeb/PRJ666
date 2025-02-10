@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
+        lowercase: true,
         unique: true,
     },
     password: {
@@ -22,25 +23,25 @@ const UserSchema = new mongoose.Schema({
     date_of_birth: { 
         type: Date, 
     },
-    preferences: [{ 
-        type: String 
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now,
+    preferences: { 
+        type: [String], 
+        default: [] 
     },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
+    profile_image: { 
+        type: String, 
+        default: "https://api.dicebear.com/7.x/initials/svg?seed=User" // Default avatar
     },
     profile: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: "UserProfile" 
     },
-});
+}, { timestamps: true });
 
 // Hash password before saving
 UserSchema.pre("save", async function (next) {
+    if (this.isModified('email')) {
+        this.email = this.email.toLowerCase();
+    }
     if (!this.isModified("password")) return next();
     this.password = await bcrypt.hash(this.password, 10);
     next();

@@ -174,6 +174,29 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Update user profile (including profile image)
+// @route   PUT /api/users/:id
+// @access  Private
+const updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Update fields
+    user.first_name = req.body.first_name || user.first_name;
+    user.last_name = req.body.last_name || user.last_name;
+    
+    if (req.file) {
+      user.profile_image = req.file.path; // Cloudinary image URL
+    }
+
+    await user.save();
+    res.status(200).json({ message: "Profile updated", user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Export all controllers
 module.exports = {
   registerUser,

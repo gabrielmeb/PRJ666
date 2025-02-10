@@ -14,7 +14,7 @@ const recommendationRoutes = require("./routes/recommendationRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 const userCommunityRoutes = require("./routes/userCommunityRoutes");
 const messageRoutes = require("./routes/messageRoutes");
-const contentRoutes = require("./routes/contentRoutes");
+const contentLibraryRoutes = require("./routes/contentLibraryRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
@@ -40,7 +40,7 @@ app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/communities", communityRoutes);
 app.use("/api/user-communities", userCommunityRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/content", contentRoutes);
+app.use("/api/content-library", contentLibraryRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/notifications", notificationRoutes);
 

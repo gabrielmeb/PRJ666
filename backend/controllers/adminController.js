@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 // Generate JWT Token for Admin
 const generateToken = (admin) => {
   return jwt.sign({ id: admin._id, email: admin.email, role: admin.role }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "1d",
   });
 };
 

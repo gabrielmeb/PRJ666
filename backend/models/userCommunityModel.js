@@ -12,9 +12,14 @@ const UserCommunitySchema = new mongoose.Schema(
         ref: "Community", 
         required: true 
     },
+    joinedAt: { 
+      type: Date, 
+      default: Date.now 
+    }
   },
-  { timestamps: true }
 );
+
+UserCommunitySchema.index({ user_id: 1, community_id: 1 }, { unique: true });
 
 const UserCommunity = mongoose.model("UserCommunity", UserCommunitySchema);
 module.exports = UserCommunity;

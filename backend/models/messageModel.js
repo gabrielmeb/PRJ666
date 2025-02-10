@@ -16,9 +16,10 @@ const MessageSchema = new mongoose.Schema(
         type: String, 
         required: true 
     },
-    attachments: [{ 
-        type: String 
-    }], // URLs for images, files, etc.
+    attachments: { 
+        type: [String],
+        default: [], 
+    }, // URLs for images, files, etc.
   },
   { timestamps: true }
 );
