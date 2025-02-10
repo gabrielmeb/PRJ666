@@ -7,7 +7,7 @@ function MyApp({ Component, pageProps }) {
   const noNavbarRoutes = ["/register", "/login"]; 
   return (
     <div>
-      {!noNavbarRoutes.includes(router.pathname) && <Navbar />}
+      {/* {!noNavbarRoutes.includes(router.pathname) && <Navbar />} */}
       <Component {...pageProps} />
     </div>
   );

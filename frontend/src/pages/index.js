@@ -1,58 +1,202 @@
-import Button from "@/components/Button";
-import Image from "next/image";
+// import Link from "next/link";
+// import { TypeAnimation } from "react-type-animation";
+
+// export default function Home() {
+//   return (
+//     <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white overflow-hidden">
+
+//       {/* Admin Login Button (top-right corner) */}
+//       <div className="absolute top-4 right-4">
+//         <Link
+//           href="/admin/login"
+//           className="bg-transparent text-black px-1 md:px-3 py-1 text-sm md:text-lg font-semibold hover:text-white transition-colors"
+//         >
+//           Admin
+//         </Link>
+//       </div>
+
+//       <div
+//         className="fade-up drop-shadow-lg mb-8"
+//         style={{ animationDelay: "0.5s" }}
+//       >
+//         <TypeAnimation
+//               sequence={[
+//                 "BeBetter",
+//                 1000,
+//                 "",
+//                 250,
+//                 "BeBetter",
+//                 1000,
+//                 "",
+//                 250,
+//               ]}
+//               wrapper="span"
+//               speed={25}
+//               cursor={true}
+//               className="text-5xl font-extrabold mb-8 text-center"
+//               repeat={Infinity}
+//               aria-live="polite"
+//             />
+//       </div>
+
+//       {/* Subtitle / Description */}
+//       <p
+//         className="fade-up text-lg max-w-2xl px-4 text-center"
+//         style={{ animationDelay: "1.2s" }}
+//       >
+//         Elevate your life with personalized growth insights. Track progress, set goals, 
+//         and be the best version of yourself!
+//       </p>
+
+//       {/* Buttons (fade up) */}
+//       <div className="flex flex-col md:flex-row items-center justify-center gap-4 my-6 fade-up" style={{ animationDelay: "1.8s" }}>
+//         <Link
+//           href="/login"
+//           className="px-6 py-2 rounded-full bg-white text-purple-600 text-md font-semibold shadow-md transition-all duration-300 
+//                     hover:bg-gray-100 hover:shadow-lg hover:scale-105"
+//         >
+//           Sign In
+//         </Link>
+
+//         <button
+//           className="px-4 py-2 rounded-full bg-black text-white text-md font-semibold shadow-lg transition-all duration-300 
+//                     hover:bg-gray-900 hover:shadow-xl hover:scale-105 fade-up"
+//         >
+//           Get Started
+//         </button>
+//       </div>
+
+
+//     </div>
+//   );
+// }
+
+
+
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { TypeAnimation } from "react-type-animation";
 
 export default function Home() {
+  const [step, setStep] = useState(0);
+  const [isOnboardingVisible, setIsOnboardingVisible] = useState(false);
+
+  // Onboarding steps
+  const steps = [
+    { title: "Welcome to BeBetter!", description: "Your personal growth companion to set goals, track progress, and become your best self." },
+    { title: "Track Your Progress", description: "Monitor your improvements with insightful analytics and real-time feedback." },
+    { title: "Set Achievable Goals", description: "Define goals tailored to your lifestyle and get personalized growth insights." },
+    { title: "Join the Community", description: "Connect with like-minded individuals and grow together!" },
+    { title: "Ready to Begin?", description: "Create an account and start your journey today!" }
+  ];
+
   return (
-    <section className="w-full bg-gray-100 text-center">
-      <div className="relative w-full h-64">
-        <Image 
-          src="/images/jasper-lake-hero-banner.webp" 
-          alt="BeBetter Hero Image" 
-          layout="fill" 
-          objectFit="cover" 
-          quality={75} 
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white overflow-hidden">
+
+      {/* Admin Login Button (top-right corner) */}
+      <div className="absolute top-4 right-4">
+        <Link
+          href="/admin/login"
+          className="bg-transparent text-black px-1 md:px-3 py-1 text-sm md:text-lg font-semibold hover:text-white transition-colors"
+        >
+          Admin
+        </Link>
+      </div>
+
+      {/* Animated Title */}
+      <div className="fade-up drop-shadow-lg mb-8" style={{ animationDelay: "0.5s" }}>
+        <TypeAnimation
+          sequence={["BeBetter", 1000, "", 250, "BeBetter", 1000, "", 250]}
+          wrapper="span"
+          speed={25}
+          cursor={true}
+          className="text-5xl font-extrabold mb-8 text-center"
+          repeat={Infinity}
+          aria-live="polite"
         />
       </div>
-      <div className="max-w-4xl mx-auto mt-12 text-left px-6">
-        <h1 className="text-5xl font-bold text-gray-800">Calm your mind. Change your life.</h1>
-        <p className="mt-6 text-xl text-gray-600 leading-relaxed">
-          BeBetter is your personal self-improvement companion, designed to help you build better habits,
-          stay motivated, and track your progress. Our app provides personalized content to manage stress,
-          improve sleep, and enhance mindfulness, helping you become the best version of yourself.
-        </p>
-        <div className="mt-8">
-          <Button className="px-6 py-3 text-lg">Try BeBetter for Free</Button>
+
+      {/* Subtitle / Description */}
+      <p className="fade-up text-lg max-w-2xl px-4 text-center" style={{ animationDelay: "1.2s" }}>
+        Elevate your life with personalized growth insights. Track progress, set goals, 
+        and be the best version of yourself!
+      </p>
+
+      {/* Buttons (fade up) */}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-6 mb-12 fade-up" style={{ animationDelay: "1.8s" }}>
+        <Link
+          href="/login"
+          className="px-6 py-2 rounded-full bg-white text-purple-600 text-md font-semibold shadow-md transition-all duration-300 
+                    hover:bg-gray-100 hover:shadow-lg hover:scale-105"
+        >
+          Sign In
+        </Link>
+
+        {/* Get Started Button - Triggers Onboarding */}
+        <button
+          className="px-4 py-2 rounded-full bg-black text-white text-md font-semibold shadow-lg transition-all duration-300 
+                    hover:bg-gray-900 hover:shadow-xl hover:scale-105 fade-up"
+          onClick={() => setIsOnboardingVisible(true)}
+        >
+          Get Started
+        </button>
+      </div>
+
+      {/* Fullscreen Onboarding Guide */}
+      {isOnboardingVisible && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 text-white"
+          onClick={() => setIsOnboardingVisible(false)} // Close on outside click
+        >
+          <div 
+            className="w-[90%] max-w-lg p-8 bg-gray-900 rounded-2xl shadow-xl text-center relative"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+          >
+            {/* Close (X) Button */}
+            <button 
+              className="absolute top-3 right-4 text-2xl font-bold text-gray-400 hover:text-white"
+              onClick={() => setIsOnboardingVisible(false)}
+            >
+              ✕
+            </button>
+
+            <h2 className="text-3xl font-bold">{steps[step].title}</h2>
+            <p className="text-lg mt-3">{steps[step].description}</p>
+
+            {/* Navigation Buttons */}
+            <div className="mt-6 flex justify-between">
+              {/* Back Button */}
+              <button
+                className={`px-5 py-2 rounded-lg text-lg font-semibold ${step === 0 ? "opacity-50 cursor-not-allowed" : "bg-gray-700 hover:bg-gray-600"}`}
+                disabled={step === 0}
+                onClick={() => setStep((prev) => prev - 1)}
+              >
+                Back
+              </button>
+
+              {/* Next or Sign Up Now Button */}
+              {step < steps.length - 1 ? (
+                <button
+                  className="px-5 py-2 bg-purple-600 rounded-lg text-lg font-semibold hover:bg-purple-700"
+                  onClick={() => setStep((prev) => prev + 1)}
+                >
+                  Next
+                </button>
+              ) : (
+                <Link
+                  href="/register"
+                  className="px-5 py-2 bg-green-600 rounded-lg text-lg font-semibold hover:bg-green-700"
+                >
+                  Sign Up Now
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-      {/* New section with the list of features */}
-      <div className="mt-16 px-10">
-        <ul className="flex justify-center space-x-8">
-          <li>
-            <button className="text-gray-800 p-6 rounded-xl shadow-xl hover:bg-blue-500 transform transition-transform duration-200 hover:scale-105 hover:text-white text-left">
-              <img src="/images/graph.png" alt="Stress Icon" className="w-10 h-10 mb-4" />
-              <h3 className="font-semibold text-xl">Track progress.</h3>
-              <p className="text-md mt-2">Stay on top of your goals with our easy-to-use progress tracker, designed to keep you motivated and on track.</p>
-              <span className="text-blue-500 mt-2 block">Learn More</span>
-            </button>
-          </li>
-          <li>
-            <button className="text-gray-800 p-6 rounded-xl shadow-xl hover:bg-blue-500 transform transition-transform duration-200 hover:scale-105 hover:text-white text-left">
-              <img src="/images/friend.png" alt="Stress Icon" className="w-10 h-10 mb-4" />
-              <h3 className="font-semibold text-xl">Connect with others.</h3>
-              <p className="text-md mt-2">Join a community that supports your journey to better sleep, mindfulness, and well-being.</p>
-              <span className="text-blue-500 mt-2 block">Learn More</span>
-            </button>
-          </li>
-          <li>
-            <button className="text-gray-800 p-6 rounded-xl shadow-xl hover:bg-blue-500 transform transition-transform duration-200 hover:scale-105 hover:text-white text-left">
-              <img src="/images/personalization.png" alt="Stress Icon" className="w-10 h-10 mb-4" />
-              <h3 className="font-semibold text-xl">Personalized recommendations.</h3>
-              <p className="text-md mt-2">Receive tailored recommendations based on your preferences and progress to enhance mindfulness and well-being.</p>
-              <span className="text-blue-500 mt-2 block">Learn More</span>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </section>
+      )}
+
+    </div>
   );
 }
+
