@@ -7,4 +7,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const verifyCloudinary = async () => {
+  try {
+    const response = await cloudinary.api.ping();
+    console.log("✅ Cloudinary is connected successfully!", response);
+  } catch (error) {
+    console.error("❌ Cloudinary Initialization Failed:", error.message);
+  }
+};
+
+verifyCloudinary(); // Test Cloudinary connection
+
 module.exports = cloudinary;

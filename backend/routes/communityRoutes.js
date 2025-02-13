@@ -1,19 +1,50 @@
 const express = require("express");
+const { protect, authorize } = require("../middleware/authMiddleware");
+const { validateRequest } = require("../middleware/validateMiddleware");
+const { body } = require("express-validator");
+
 const {
   createCommunity,
   getAllCommunities,
   getCommunityById,
   updateCommunity,
-  deleteCommunity,
+  deleteCommunity
 } = require("../controllers/communityController");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/", protect, adminOnly, createCommunity);
+// Create a new community (Users & Admins)
+router.post(
+  "/",
+  protect,
+  validateRequest([
+    body("name").notEmpty().withMessage("Community name is required"),
+    body("description").notEmpty().withMessage("Description is required"),
+    body("tags").optional().isArray().withMessage("Tags must be an array")
+  ]),
+  createCommunity
+);
+
+// Get all communities (Public)
 router.get("/", getAllCommunities);
+
+// Get a specific community by ID (Public)
 router.get("/:communityId", getCommunityById);
-router.put("/:communityId", protect, adminOnly, updateCommunity);
-router.delete("/:communityId", protect, adminOnly, deleteCommunity);
+
+// Update a community (Admin & Community Creator)
+router.put(
+  "/:communityId",
+  protect,
+  authorize("Admin", "SuperAdmin"),
+  validateRequest([
+    body("name").optional().notEmpty().withMessage("Community name cannot be empty"),
+    body("description").optional().notEmpty().withMessage("Description cannot be empty"),
+    body("tags").optional().isArray().withMessage("Tags must be an array")
+  ]),
+  updateCommunity
+);
+
+// Delete a community (Only Admins & SuperAdmins)
+router.delete("/:communityId", protect, authorize("SuperAdmin"), deleteCommunity);
 
 module.exports = router;

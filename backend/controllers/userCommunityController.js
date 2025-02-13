@@ -1,11 +1,18 @@
 const UserCommunity = require("../models/userCommunityModel");
 const Community = require("../models/communityModel");
+const { validationResult } = require("express-validator");
 
 // @desc    Join a community
 // @route   POST /api/user-communities
 // @access  Private
-const joinCommunity = async (req, res) => {
+const joinCommunity = async (req, res, next) => {
   try {
+    // Validate input fields
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { community_id } = req.body;
     const userId = req.user._id;
 
@@ -25,14 +32,14 @@ const joinCommunity = async (req, res) => {
 
     res.status(201).json({ message: "Joined community successfully", membership: newMembership });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
 // @desc    Leave a community
 // @route   DELETE /api/user-communities/:communityId
 // @access  Private
-const leaveCommunity = async (req, res) => {
+const leaveCommunity = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const communityId = req.params.communityId;
@@ -45,31 +52,43 @@ const leaveCommunity = async (req, res) => {
 
     res.status(200).json({ message: "Left community successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-// @desc    Get all users in a community
+// @desc    Get all users in a community with pagination
 // @route   GET /api/user-communities/community/:communityId
 // @access  Private
-const getUsersInCommunity = async (req, res) => {
+const getUsersInCommunity = async (req, res, next) => {
   try {
-    const members = await UserCommunity.find({ community_id: req.params.communityId }).populate("user_id", "-password");
-    res.status(200).json(members);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const members = await UserCommunity.find({ community_id: req.params.communityId })
+      .populate("user_id", "-password")
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.status(200).json({ page, limit, count: members.length, members });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
 // @desc    Get all communities a user joined
 // @route   GET /api/user-communities/user
 // @access  Private
-const getUserCommunities = async (req, res) => {
+const getUserCommunities = async (req, res, next) => {
   try {
-    const userCommunities = await UserCommunity.find({ user_id: req.user._id }).populate("community_id");
+    const userCommunities = await UserCommunity.find({ user_id: req.user._id })
+      .populate("community_id")
+      .lean();
+
     res.status(200).json(userCommunities);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
@@ -77,5 +96,5 @@ module.exports = {
   joinCommunity,
   leaveCommunity,
   getUsersInCommunity,
-  getUserCommunities,
+  getUserCommunities
 };

@@ -1,17 +1,21 @@
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../config/cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// Set up storage for Cloudinary
+// 🔹 Configure Cloudinary Storage for Multer
 const storage = new CloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinary,
   params: {
-    folder: "profile_pictures",
-    allowed_formats: ["jpg", "jpeg", "png"],
-  },
+    folder: "profile_images", // Folder in Cloudinary
+    allowed_formats: ["jpg", "png", "jpeg", "gif"], // Allowed file types
+    transformation: [{ width: 500, height: 500, crop: "limit" }]
+  }
 });
 
-// Multer middleware
-const upload = multer({ storage });
+// 🔹 Multer File Upload Handler
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max file size
+});
 
 module.exports = upload;

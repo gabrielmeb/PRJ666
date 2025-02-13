@@ -1,24 +1,58 @@
 const express = require("express");
+const { protectAdmin, authorizeAdmin } = require("../middleware/adminMiddleware");
 const {
-  registerAdmin,
-  loginAdmin,
   getAllAdmins,
   getAdminById,
+  registerAdmin,
   updateAdminRole,
-  deleteAdmin,
+  deleteAdmin
 } = require("../controllers/adminController");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
+
+const {
+  getAllUsers,
+  deleteUser
+} = require("../controllers/userController");
+
+const {
+  getAllCommunities,
+  deleteCommunity
+} = require("../controllers/communityController");
+
+const { sendNotification } = require("../controllers/notificationController");
 
 const router = express.Router();
 
-// Public Routes
-router.post("/login", loginAdmin);
+// SuperAdmin Only: Create a new admin
+router.post("/register", protectAdmin, authorizeAdmin(["SuperAdmin"]), registerAdmin);
 
-// Super Admin Routes
-router.post("/register", protect, adminOnly, registerAdmin);
-router.get("/", protect, adminOnly, getAllAdmins);
-router.get("/:id", protect, adminOnly, getAdminById);
-router.put("/:id", protect, adminOnly, updateAdminRole);
-router.delete("/:id", protect, adminOnly, deleteAdmin);
+// SuperAdmin Only: Get all admins
+router.get("/admins", protectAdmin, authorizeAdmin(["SuperAdmin"]), getAllAdmins);
+
+// SuperAdmin Only: Get a single admin by ID
+router.get("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), getAdminById);
+
+// SuperAdmin Only: Update admin role
+router.put("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), updateAdminRole);
+
+// SuperAdmin Only: Delete an admin
+router.delete("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), deleteAdmin);
+
+// Admin & SuperAdmin: Get all users
+router.get("/users", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllUsers);
+
+// SuperAdmin & Admin: Delete a user
+router.delete("/users/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteUser);
+
+// Admin & SuperAdmin: Get all communities
+router.get("/communities", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllCommunities);
+
+// SuperAdmin Only: Delete a community
+router.delete("/communities/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteCommunity);
+
+// Admin & SuperAdmin: View all notifications
+// router.get("/notifications", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin"]), getAllNotifications);
+
+// All admins: Send notifications
+router.post("/notifications", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), sendNotification);
 
 module.exports = router;

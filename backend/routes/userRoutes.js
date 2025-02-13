@@ -1,26 +1,42 @@
 const express = require("express");
+const { protect, authorize } = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
+const { validateRequest } = require("../middleware/validateMiddleware");
+const { body } = require("express-validator");
+
 const {
-  registerUser,
-  loginUser,
   getAllUsers,
   getUserById,
-  getUsersByFirstName,
   updateUser,
-  deleteUser,
+  deleteUser
 } = require("../controllers/userController");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Public Routes
-router.post("/register", registerUser); // Register User
-router.post("/login", loginUser); // Login User
+// Get all users (Admin & SuperAdmin only)
+router.get("/", protect, authorize("Admin", "SuperAdmin"), getAllUsers);
 
-// Protected Routes (Require Authentication)
-router.get("/", protect, adminOnly, getAllUsers); // Get All Users (Admin Only)
-router.get("/:id", protect, getUserById); // Get User by ID
-router.get("/search/:firstName", protect, getUsersByFirstName); // Search User by First Name
-router.put("/:id", protect, updateUser); // Update User
-router.delete("/:id", protect, adminOnly, deleteUser); // Delete User (Admin Only)
+// Get a user by ID (User & Admins)
+router.get("/:id", protect, getUserById);
+
+// // Search users by first name (Users & Admins)
+// router.get("/search/:firstName", protect, getUsersByFirstName);
+
+// 🔹 Update user details (Admins & Users) - Supports Profile Image Uploads
+router.put(
+  "/:id",
+  protect,
+  upload.single("profile_image"),
+  validateRequest([
+    body("first_name").optional().notEmpty().withMessage("First name cannot be empty"),
+    body("last_name").optional().notEmpty().withMessage("Last name cannot be empty"),
+    body("date_of_birth").optional().isISO8601().withMessage("Invalid date format"),
+    body("preferences").optional().isArray().withMessage("Preferences must be an array")
+  ]),
+  updateUser
+);
+
+// Delete user (SuperAdmin can delete any user, users can delete themselves)
+router.delete("/:id", protect, authorize("SuperAdmin", "User"), deleteUser);
 
 module.exports = router;

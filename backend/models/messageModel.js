@@ -2,24 +2,36 @@ const mongoose = require("mongoose");
 
 const MessageSchema = new mongoose.Schema(
   {
-    sender_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
-        required: true 
+    sender_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true // Optimized for querying messages by sender
     },
-    community_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Community", 
-        required: true 
+    community_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Community",
+      required: true,
+      index: true // Optimized for querying messages by community
     },
-    message: { 
-        type: String, 
-        required: true 
+    message: {
+      type: String,
+      required: [true, "Message content is required"],
+      trim: true,
+      minlength: [1, "Message must have at least 1 character"],
+      maxlength: [2000, "Message cannot exceed 2000 characters"]
     },
-    attachments: { 
-        type: [String],
-        default: [], 
-    }, // URLs for images, files, etc.
+    attachments: [
+      {
+        type: String,
+        validate: {
+          validator: function (v) {
+            return /^(http|https):\/\/[^ "]+$/.test(v);
+          },
+          message: (props) => `${props.value} is not a valid URL!`
+        }
+      }
+    ]
   },
   { timestamps: true }
 );

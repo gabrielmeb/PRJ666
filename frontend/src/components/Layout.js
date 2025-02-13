@@ -66,7 +66,7 @@ export default function Layout({ children }) {
                 Content Library
               </Link>
               <Link
-                href="/admin"
+                href="/admin/login"
                 className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
                 onClick={() => setSidebarOpen(false)}
               >

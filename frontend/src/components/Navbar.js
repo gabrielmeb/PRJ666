@@ -165,7 +165,7 @@ export default function Navbar({ user }) {
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 flex items-center justify-between py-3">
         {/* Logo on the left */}
-        <Link href="/">
+        <Link href="/dashboard">
           <span className="text-2xl font-bold text-purple-600 cursor-pointer">
             BeBetter <span className="inline-block">🚀</span>
           </span>
