@@ -1,13 +1,20 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { RiHome3Line, RiUserLine,RiLineChartLine, RiUserCommunityFill, RiImageAiLine, RiAdminLine } from "react-icons/ri";
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const router = useRouter();
+
+  // Function to check if the link is active
+  const isActive = (path) => router.pathname === path;
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Top Navbar */}
       <Navbar />
 
@@ -31,46 +38,76 @@ export default function Layout({ children }) {
           >
             <nav className="flex flex-col space-y-2">
               <Link
-                href="/dashboard"
-                className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
+                href="/home"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/home")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                Dashboard
+                <RiHome3Line size={20} />
+                <span>Home</span>
               </Link>
               <Link
                 href="/profile"
-                className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/profile")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                Profile
+                <RiUserLine size={20} />
+                <span>Profile</span>
               </Link>
               <Link
                 href="/goals"
-                className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/goals")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                Goals
+                <RiLineChartLine size={20} />
+                <span>Goals</span>
               </Link>
               <Link
                 href="/community"
-                className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/community")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                Community
+                <RiUserCommunityFill size={20} />
+                <span>Community</span>
               </Link>
               <Link
                 href="/library"
-                className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/library")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                Content Library
+                <RiImageAiLine size={20} />
+                <span>Content Library</span>
               </Link>
               <Link
-                href="/admin/login"
-                className="py-2 px-4 text-gray-700 hover:bg-purple-100 rounded"
+                href="/admin"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/admin/login")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                Admin
+                <RiAdminLine size={20} />
+                <span>Admin</span>
               </Link>
             </nav>
           </aside>
