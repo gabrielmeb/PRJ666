@@ -91,8 +91,9 @@ const loginAdmin = async (req, res, next) => {
 // @access  Private (Super Admin Only)
 const getAllAdmins = async (req, res, next) => {
   try {
-    if (req.user.role !== "SuperAdmin") {
-      return res.status(403).json({ message: "Access denied. Only Super Admins can view admins." });
+    // Allow SuperAdmin, Admin, or Moderator to view all admins
+    if (!["SuperAdmin", "Admin", "Moderator"].includes(req.admin.role)) {
+      return res.status(403).json({ message: "Access denied. Insufficient permissions." });
     }
 
     const admins = await Admin.find().select("-password").lean();
@@ -102,12 +103,13 @@ const getAllAdmins = async (req, res, next) => {
   }
 };
 
+
 // @desc    Get admin by ID (Super Admin Only)
 // @route   GET /api/admins/:id
 // @access  Private (Super Admin Only)
 const getAdminById = async (req, res, next) => {
   try {
-    if (req.user.role !== "SuperAdmin") {
+    if (req.admin.role !== "SuperAdmin" ) {
       return res.status(403).json({ message: "Access denied. Only Super Admins can view an admin." });
     }
 
@@ -122,12 +124,46 @@ const getAdminById = async (req, res, next) => {
   }
 };
 
+// @desc    Update logged-in admin profile
+// @route   PUT /api/admin/profile
+// @access  Private
+const updateAdminProfile = async (req, res, next) => {
+  try {
+    // Use req.admin from the middleware instead of req.user
+    const admin = await Admin.findById(req.admin._id).select("+password");
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    // Update fields if provided
+    admin.name = req.body.name || admin.name;
+    admin.email = req.body.email || admin.email;
+    if (req.body.password) {
+      admin.password = req.body.password;
+    }
+
+    await admin.save();
+
+    res.status(200).json({
+      message: "Admin profile updated successfully",
+      admin: {
+        _id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Update admin role (Super Admin Only)
 // @route   PUT /api/admins/:id
 // @access  Private (Super Admin Only)
 const updateAdminRole = async (req, res, next) => {
   try {
-    if (req.user.role !== "SuperAdmin") {
+    if (req.admin.role !== "SuperAdmin") {
       return res.status(403).json({ message: "Access denied. Only Super Admins can update roles." });
     }
 
@@ -152,7 +188,7 @@ const updateAdminRole = async (req, res, next) => {
 // @access  Private (Super Admin Only)
 const deleteAdmin = async (req, res, next) => {
   try {
-    if (req.user.role !== "SuperAdmin") {
+    if (req.admin.role !== "SuperAdmin") {
       return res.status(403).json({ message: "Access denied. Only Super Admins can delete an admin." });
     }
 
@@ -162,7 +198,7 @@ const deleteAdmin = async (req, res, next) => {
     }
 
     // Prevent self-deletion
-    if (req.user.id === admin._id.toString()) {
+    if (req.admin.id === admin._id.toString()) {
       return res.status(400).json({ message: "SuperAdmin cannot delete themselves." });
     }
 
@@ -178,6 +214,7 @@ module.exports = {
   loginAdmin,
   getAllAdmins,
   getAdminById,
+  updateAdminProfile,
   updateAdminRole,
   deleteAdmin,
 };

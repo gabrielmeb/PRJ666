@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const [apiError, setApiError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // Set up react-hook-form
@@ -36,7 +37,7 @@ const Login = () => {
       // localStorage.setItem("token", result.token);
 
       // Redirect user upon successful login
-      router.push("/dashboard");
+      router.push("/home");
     } catch (err) {
       setApiError(err.message);
     }
@@ -84,9 +85,9 @@ const Login = () => {
           </div>
 
           {/* Password Field */}
-          <div>
+          <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               {...register("password", {
                 required: "Password is required",
@@ -97,6 +98,13 @@ const Login = () => {
               })}
               className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.password.message}

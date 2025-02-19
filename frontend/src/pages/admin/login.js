@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const AdminLogin = () => {
   const [apiError, setApiError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Check if admin is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      router.push("/admin/dashboard");
+    }
+  }, [router]);
 
   // Setup react-hook-form
   const {
@@ -18,7 +28,7 @@ const AdminLogin = () => {
   // Handle form submission
   const onSubmit = async (formData) => {
     setApiError("");
-
+    setIsLoading(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/admin/login`, {
         method: "POST",
@@ -32,12 +42,12 @@ const AdminLogin = () => {
         throw new Error(result.message || "Login failed");
       }
 
-      // Check if the logged-in user is an admin
+      // Check if the logged-in user is an admin or super admin
       if (result.admin.role !== "Admin" && result.admin.role !== "SuperAdmin") {
         throw new Error("Unauthorized: You are not an admin");
       }
 
-      // Store token in localStorage
+      // Store token and admin info in localStorage
       localStorage.setItem("adminToken", result.token);
       localStorage.setItem("adminInfo", JSON.stringify(result.admin));
 
@@ -45,6 +55,8 @@ const AdminLogin = () => {
       router.push("/admin/dashboard");
     } catch (err) {
       setApiError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -94,10 +106,10 @@ const AdminLogin = () => {
           </div>
 
           {/* Password Field */}
-          <div>
+          <div className="relative">
             <input
-              type="password"
-              placeholder="Admin Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
               {...register("password", {
                 required: "Password is required",
                 minLength: {
@@ -107,6 +119,13 @@ const AdminLogin = () => {
               })}
               className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.password.message}
@@ -117,9 +136,12 @@ const AdminLogin = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            disabled={isLoading}
+            className={`w-full bg-purple-600 text-white py-3 rounded-lg font-semibold transition-colors ${
+              isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+            }`}
           >
-            Log In
+            {isLoading ? "Logging In..." : "Log In"}
           </button>
         </form>
 

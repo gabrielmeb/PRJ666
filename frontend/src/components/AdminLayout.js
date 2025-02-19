@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LogOut, LayoutDashboard, Users, Briefcase, Handshake, ChartNoAxesCombined, Settings } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Briefcase, Handshake, Settings } from "lucide-react";
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
 
   const handleLogout = () => {
+    if (confirm("Are you sure you want to logout?")) {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminInfo");
     router.push("/");
+    }
   };
 
   return (
@@ -29,9 +31,6 @@ export default function AdminLayout({ children }) {
           </Link>
           <Link href="/admin/partnerships" className="flex items-center p-3 text-gray-700 hover:bg-purple-100 rounded">
             <Handshake className="w-5 h-5 mr-2" /> Partnerships
-          </Link>
-          <Link href="/admin/analytics" className="flex items-center p-3 text-gray-700 hover:bg-purple-100 rounded">
-            <ChartNoAxesCombined className="w-5 h-5 mr-2" /> Analytics
           </Link>
           <Link href="/admin/settings" className="flex items-center p-3 text-gray-700 hover:bg-purple-100 rounded">
             <Settings className="w-5 h-5 mr-2" /> Settings

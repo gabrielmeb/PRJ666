@@ -4,6 +4,7 @@ const {
   getAllAdmins,
   getAdminById,
   registerAdmin,
+  updateAdminProfile,
   updateAdminRole,
   deleteAdmin
 } = require("../controllers/adminController");
@@ -26,7 +27,7 @@ const router = express.Router();
 router.post("/register", protectAdmin, authorizeAdmin(["SuperAdmin"]), registerAdmin);
 
 // SuperAdmin Only: Get all admins
-router.get("/admins", protectAdmin, authorizeAdmin(["SuperAdmin"]), getAllAdmins);
+router.get("/admins", protectAdmin, authorizeAdmin(["SuperAdmin","Admin","Moderator"]), getAllAdmins);
 
 // SuperAdmin Only: Get a single admin by ID
 router.get("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), getAdminById);
@@ -34,10 +35,13 @@ router.get("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), getAdmin
 // SuperAdmin Only: Update admin role
 router.put("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), updateAdminRole);
 
+// Route to update own admin profile
+router.put("/profile", protectAdmin, updateAdminProfile);
+
 // SuperAdmin Only: Delete an admin
 router.delete("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), deleteAdmin);
 
-// Admin & SuperAdmin: Get all users
+// All admins: Get all users
 router.get("/users", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllUsers);
 
 // SuperAdmin & Admin: Delete a user
