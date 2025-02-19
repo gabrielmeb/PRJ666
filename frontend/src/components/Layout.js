@@ -38,7 +38,7 @@ export default function Layout({ children }) {
           >
             <nav className="flex flex-col space-y-2">
               <Link
-                href="/home"
+                href="/user/home"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/home")
                     ? "bg-purple-600 text-white"
@@ -50,7 +50,7 @@ export default function Layout({ children }) {
                 <span>Home</span>
               </Link>
               <Link
-                href="/profile"
+                href="/user/profile"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/profile")
                     ? "bg-purple-600 text-white"
@@ -62,7 +62,7 @@ export default function Layout({ children }) {
                 <span>Profile</span>
               </Link>
               <Link
-                href="/goals"
+                href="/user/goals"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/goals")
                     ? "bg-purple-600 text-white"
@@ -74,7 +74,7 @@ export default function Layout({ children }) {
                 <span>Goals</span>
               </Link>
               <Link
-                href="/community"
+                href="/user/community"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/community")
                     ? "bg-purple-600 text-white"
@@ -86,7 +86,7 @@ export default function Layout({ children }) {
                 <span>Community</span>
               </Link>
               <Link
-                href="/library"
+                href="/user/library"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/library")
                     ? "bg-purple-600 text-white"
@@ -98,7 +98,7 @@ export default function Layout({ children }) {
                 <span>Content Library</span>
               </Link>
               <Link
-                href="/admin"
+                href="/user/admin"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/admin/login")
                     ? "bg-purple-600 text-white"

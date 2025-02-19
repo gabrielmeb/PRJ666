@@ -20,7 +20,7 @@ export default function WarningPage() {
               Proceed to Admin Login
             </button>
           </Link>
-          <Link href="/home">
+          <Link href="/user/home">
             <button className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded transition">
               Go to User Homepage
             </button>
@@ -31,7 +31,7 @@ export default function WarningPage() {
           >
             Go Back to Previous Page
           </button>
-          <Link href="/admin/contact">
+          <Link href="/user/contact">
             <button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 rounded transition">
               Contact Admin
             </button>

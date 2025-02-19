@@ -31,7 +31,7 @@ const Register = () => {
       }
 
       // If registration is successful, redirect to the login page
-      router.push("/login");
+      router.push("/user/login");
     } catch (err) {
       setApiError(err.message);
     }
@@ -172,7 +172,7 @@ const Register = () => {
 
         <p className="mt-4 text-gray-500">
           Already have an account?{" "}
-          <Link href="/login" className="text-purple-600 font-semibold hover:underline">
+          <Link href="/user/login" className="text-purple-600 font-semibold hover:underline">
             Sign In
           </Link>
         </p>

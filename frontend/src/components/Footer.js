@@ -11,8 +11,7 @@ export default function Footer() {
             <p className="text-sm">
               © {new Date().getFullYear()}{" "}
               <span className="text-purple-400 font-semibold">BeBetter</span>. All rights reserved.
-            </p>`
-            `
+            </p>
           </div>
 
           {/* Center: Navigation Links */}

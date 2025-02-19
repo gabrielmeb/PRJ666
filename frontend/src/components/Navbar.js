@@ -30,7 +30,7 @@ export default function Navbar({ user }) {
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 flex items-center justify-between py-3">
         {/* Logo on the left */}
-        <Link href="/home">
+        <Link href="/user/home">
           <span className="text-2xl font-bold text-purple-600 cursor-pointer">
             BeBetter <span className="inline-block"><Rocket/></span>
           </span>
@@ -127,14 +127,14 @@ export default function Navbar({ user }) {
       {/* Menu Options */}
       <div className="py-2">
         <Link
-          href="/profile"
+          href="/user/profile"
           className="px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
           onClick={() => setIsModalOpen(false)}
         >
           <span><UserRoundPen/></span> Profile
         </Link>
         <Link
-          href="/settings"
+          href="/user/settings"
           className="px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
           onClick={() => setIsModalOpen(false)}
         >

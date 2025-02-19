@@ -37,7 +37,7 @@ const Login = () => {
       // localStorage.setItem("token", result.token);
 
       // Redirect user upon successful login
-      router.push("/home");
+      router.push("/user/home");
     } catch (err) {
       setApiError(err.message);
     }
@@ -123,7 +123,7 @@ const Login = () => {
 
         <p className="mt-4 text-gray-500">
           Don’t have an account yet?{" "}
-          <Link href="/register" className="text-purple-600 font-semibold hover:underline">
+          <Link href="/user/register" className="text-purple-600 font-semibold hover:underline">
             Sign Up
           </Link>
         </p>

@@ -51,7 +51,7 @@ export default function Home() {
       {/* Buttons (fade up) */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-6 mb-12 fade-up" style={{ animationDelay: "1.8s" }}>
         <Link
-          href="/login"
+          href="user/login"
           className="px-6 py-2 rounded-full bg-white text-purple-600 text-md font-semibold shadow-md transition-all duration-300 
                     hover:bg-gray-100 hover:shadow-lg hover:scale-105"
         >
@@ -110,7 +110,7 @@ export default function Home() {
                 </button>
               ) : (
                 <Link
-                  href="/register"
+                  href="/user/register"
                   className="px-5 py-2 bg-green-600 rounded-lg text-lg font-semibold hover:bg-green-700"
                 >
                   Sign Up Now
