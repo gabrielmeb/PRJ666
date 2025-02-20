@@ -19,9 +19,6 @@ router.get("/", protect, authorize("Admin", "SuperAdmin"), getAllUsers);
 // Get a user by ID (User & Admins)
 router.get("/:id", protect, getUserById);
 
-// // Search users by first name (Users & Admins)
-// router.get("/search/:firstName", protect, getUsersByFirstName);
-
 // 🔹 Update user details (Admins & Users) - Supports Profile Image Uploads
 router.put(
   "/:id",

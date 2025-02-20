@@ -102,12 +102,33 @@ const loginUser = async (req, res, next) => {
 // @access  Private (Admin only)
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select("-password").lean();
-    res.status(200).json(users);
+    // Parse pagination query parameters (with defaults)
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Get the total count for metadata
+    const totalCount = await User.countDocuments();
+    
+    // Fetch only the required page of users
+    const users = await User.find()
+      .select("-password")
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    res.status(200).json({
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+      users,
+    });
   } catch (error) {
     next(error);
   }
 };
+
 
 // @desc    Get user by ID
 // @route   GET /api/users/:id
@@ -118,6 +139,48 @@ const getUserById = async (req, res, next) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Search users by name (first_name, last_name, or full name in any order)
+// @route   GET /api/users/search?q=searchTerm
+// @access  Private (Admins & Users)
+const searchUsers = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+    
+    // Create a case-insensitive regex from the query string
+    const regex = new RegExp(q, "i");
+
+    // Use an aggregation pipeline to add computed fields for full name and reversed name.
+    const users = await User.aggregate([
+      {
+        $addFields: {
+          fullName: { $concat: ["$first_name", " ", "$last_name"] },
+          reversedName: { $concat: ["$last_name", " ", "$first_name"] }
+        }
+      },
+      {
+        $match: {
+          $or: [
+            { first_name: { $regex: regex } },
+            { last_name: { $regex: regex } },
+            { fullName: { $regex: regex } },
+            { reversedName: { $regex: regex } }
+          ]
+        }
+      },
+      {
+        $project: { password: 0 } // Exclude password field
+      }
+    ]);
+    
+    res.status(200).json({ count: users.length, users });
   } catch (error) {
     next(error);
   }
@@ -160,18 +223,16 @@ const updateUser = async (req, res, next) => {
 // @access  Private (Admin only)
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    // First, delete the user profile if it exists
+    await UserProfile.findOneAndDelete({ user_id: req.params.id });
+
+    // Then delete the user using findByIdAndDelete
+    const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Delete user profile
-    await UserProfile.findOneAndDelete({ user_id: user._id });
-
-    // Delete user
-    await user.remove();
     
-    res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User Removed successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Ops! Server error. We are working to fix it.", error: error.message });
   }
 };
 
@@ -181,6 +242,7 @@ module.exports = {
   loginUser,
   getAllUsers,
   getUserById,
+  searchUsers,
   updateUser,
   deleteUser
 };

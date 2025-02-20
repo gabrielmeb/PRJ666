@@ -7,41 +7,47 @@ const UserProfileSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true, // Ensure one profile per user
-      index: true
+      index: true,
     },
-    strengths: [
-      {
-        category: { type: String, required: true },
-        score: { type: Number, min: 1, max: 10, default: 5 } // Allows user to rank strengths
-      }
-    ],
-    areas_for_growth: [
-      {
-        category: { type: String, required: true },
-        priority: { type: Number, min: 1, max: 5, default: 3 } // Allows ranking of areas for growth
-      }
-    ],
-    goals: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Goal"
-      }
-    ],
-    progress: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Progress"
-      }
-    ]
+    strengths: {
+      type: [
+        {
+          category: { type: String, required: true },
+          score: { type: Number, min: 1, max: 10, default: 5 }, // Allows user to rank strengths
+        },
+      ],
+      default: [], // Ensures strengths defaults to an empty array
+    },
+    areas_for_growth: {
+      type: [
+        {
+          category: { type: String, required: true },
+          priority: { type: Number, min: 1, max: 5, default: 3 }, // Allows ranking of areas for growth
+        },
+      ],
+      default: [], // Ensures areas_for_growth defaults to an empty array
+    },
+    goals: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Goal",
+      default: [], // Defaults to an empty array
+    },
+    progress: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Progress",
+      default: [], // Defaults to an empty array
+    },
   },
   { timestamps: true }
 );
 
-// 🔹 Ensure profile deletion when a user is deleted
+// 🔹 Cascade delete associated Goals and Progress when a UserProfile is removed.
+// Note: This middleware only runs on .remove() and not on findOneAndRemove.
 UserProfileSchema.pre("remove", async function (next) {
   try {
-    await mongoose.model("Goal").deleteMany({ user_id: this.user_id });
-    await mongoose.model("Progress").deleteMany({ user_id: this.user_id });
+    // Updated filter criteria to match the profile's _id instead of user_id.
+    await mongoose.model("Goal").deleteMany({ profile_id: this._id });
+    await mongoose.model("Progress").deleteMany({ profile_id: this._id });
     next();
   } catch (error) {
     next(error);

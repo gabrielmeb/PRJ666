@@ -6,38 +6,41 @@ const RecommendationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true // Optimized for user queries
+      index: true, // Optimized for user queries
     },
     type: {
       type: String,
       enum: ["Product", "Service", "Community"],
-      required: [true, "Recommendation type is required"]
+      required: [true, "Recommendation type is required"],
     },
     content: {
       title: {
         type: String,
         required: [true, "Recommendation title is required"],
-        trim: true
+        trim: true,
       },
       description: {
         type: String,
         required: [true, "Recommendation description is required"],
-        trim: true
+        trim: true,
       },
       link: {
         type: String,
+        trim: true,
         validate: {
           validator: function (v) {
+            if (!v) return true; // Allow empty values if link is not provided.
             return /^(http|https):\/\/[^ "]+$/.test(v);
           },
-          message: (props) => `${props.value} is not a valid URL!`
-        }
-      }
+          message: props => `${props.value} is not a valid URL!`,
+        },
+      },
     },
     feedback: {
       type: String,
-      trim: true
-    }
+      trim: true,
+      default: "", // Default feedback as an empty string
+    },
   },
   { timestamps: true }
 );

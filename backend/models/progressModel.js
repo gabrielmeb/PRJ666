@@ -4,52 +4,57 @@ const MilestoneSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, "Milestone title is required"],
-    trim: true
+    trim: true,
   },
   achieved: {
     type: Boolean,
-    default: false
+    default: false,
   },
   date_achieved: {
-    type: Date
-  }
+    type: Date,
+  },
 });
 
 const ProgressSchema = new mongoose.Schema(
   {
-    user_id: {
+    profile_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "UserProfile",
       required: true,
-      index: true
+      index: true,
     },
     goal_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Goal",
       required: true,
-      index: true
+      index: true,
     },
     progress_percentage: {
       type: Number,
       min: 0,
       max: 100,
-      required: true
+      required: true,
     },
-    milestones: [MilestoneSchema],
+    milestones: {
+      type: [MilestoneSchema],
+      default: [],
+    },
     notes: {
       type: String,
-      trim: true
-    }
+      trim: true,
+    },
   },
   { timestamps: true }
 );
 
-// 🔹 Ensure proper cleanup when progress entry is deleted
+// 🔹 Cleanup reference in Goal when a Progress entry is removed.
+// Since the Goal model stores a single reference (not an array) for progress,
+// we update the goal's progress field to null if it matches the removed progress.
 ProgressSchema.pre("remove", async function (next) {
   try {
     await mongoose.model("Goal").updateOne(
-      { _id: this.goal_id },
-      { $pull: { progress: this._id } }
+      { _id: this.goal_id, progress: this._id },
+      { $set: { progress: null } }
     );
     next();
   } catch (error) {

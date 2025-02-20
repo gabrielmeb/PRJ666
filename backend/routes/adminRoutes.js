@@ -11,11 +11,14 @@ const {
 
 const {
   getAllUsers,
+  searchUsers,
+  getUserById,
   deleteUser
 } = require("../controllers/userController");
 
 const {
   getAllCommunities,
+  searchCommunities,
   deleteCommunity
 } = require("../controllers/communityController");
 
@@ -44,11 +47,17 @@ router.delete("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), delet
 // All admins: Get all users
 router.get("/users", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllUsers);
 
+// Get user by first and last name
+router.get("/users/search", protectAdmin,authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchUsers);
+
 // SuperAdmin & Admin: Delete a user
 router.delete("/users/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteUser);
 
 // Admin & SuperAdmin: Get all communities
 router.get("/communities", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllCommunities);
+
+// search communities
+router.get("/search", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchCommunities);
 
 // SuperAdmin Only: Delete a community
 router.delete("/communities/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteCommunity);
