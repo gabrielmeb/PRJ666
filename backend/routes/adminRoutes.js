@@ -1,5 +1,7 @@
 const express = require("express");
 const { protectAdmin, authorizeAdmin } = require("../middleware/adminMiddleware");
+const { validateRequest } = require("../middleware/validateMiddleware");
+const { body } = require("express-validator");
 const {
   getAllAdmins,
   getAdminById,
@@ -19,6 +21,7 @@ const {
 const {
   getAllCommunities,
   searchCommunities,
+  createCommunity,
   deleteCommunity
 } = require("../controllers/communityController");
 
@@ -47,6 +50,9 @@ router.delete("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), delet
 // All admins: Get all users
 router.get("/users", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllUsers);
 
+// All admins: Get users by id
+router.get("/users/:id", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getUserById);
+
 // Get user by first and last name
 router.get("/users/search", protectAdmin,authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchUsers);
 
@@ -57,10 +63,16 @@ router.delete("/users/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]
 router.get("/communities", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllCommunities);
 
 // search communities
-router.get("/search", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchCommunities);
+router.get("/communities/search", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchCommunities);
+
+router.post(  "/communities", protectAdmin,authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), validateRequest([
+    body("name").notEmpty().withMessage("Community name is required"),
+    body("description").notEmpty().withMessage("Description is required"),
+    body("tags").optional().isArray().withMessage("Tags must be an array")
+  ]), createCommunity);
 
 // SuperAdmin Only: Delete a community
-router.delete("/communities/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteCommunity);
+router.delete("/communities/:communityId", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteCommunity);
 
 // Admin & SuperAdmin: View all notifications
 // router.get("/notifications", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin"]), getAllNotifications);

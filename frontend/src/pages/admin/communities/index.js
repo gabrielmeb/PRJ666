@@ -1,20 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import AdminLayout from "@/components/AdminLayout";
-
-/**
- * This page expects:
- *  - GET /api/communities?page={page}&limit={limit} => { page, limit, totalPages, communities: [...] }
- *  - GET /api/communities/search?q=someTerm => { count, communities: [...] } (for search)
- *  - POST /api/communities => create a community
- *  - DELETE /api/communities/:communityId => delete a community
- *  - (Optional) PUT /api/communities/:communityId => update a community
- */
+import Link from "next/link";
 
 export default function ManageCommunities() {
-  // ----------------------
-  // STATE
-  // ----------------------
   const router = useRouter();
   const [communities, setCommunities] = useState([]);
   const [page, setPage] = useState(1);
@@ -136,7 +125,7 @@ export default function ManageCommunities() {
 
       // If you have a search endpoint: GET /api/communities/search?q=...
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/communities/search?q=${encodeURIComponent(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities/search?q=${encodeURIComponent(
           searchQuery
         )}`,
         {
@@ -181,7 +170,7 @@ export default function ManageCommunities() {
 
       // DELETE /api/communities/:communityId
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/communities/${communityId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities/${communityId}`,
         {
           method: "DELETE",
           headers: {
@@ -236,7 +225,7 @@ export default function ManageCommunities() {
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/communities`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities`,
         {
           method: "POST",
           headers: {
@@ -406,7 +395,11 @@ export default function ManageCommunities() {
             <tbody>
               {communities.map((community) => (
                 <tr key={community._id} className="border-b">
-                  <td className="p-2">{community.name}</td>
+                  <td className="p-2 font-semibold underline">
+                    <Link href={`/admin/communities/${community._id}`}>
+                    {community.name}
+                    </Link>
+                  </td>
                   <td className="p-2">{community.description}</td>
                   <td className="p-2">
                     {Array.isArray(community.tags) && community.tags.join(", ")}
@@ -436,7 +429,7 @@ export default function ManageCommunities() {
 
         {/* PAGINATION (only if not searching) */}
         {!isSearching && !loading && communities.length > 0 && (
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex justify-around gap-2">
             <button
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
               disabled={page <= 1}

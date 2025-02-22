@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import AdminLayout from "@/components/AdminLayout";
 
 export default function ManageUsers() {
@@ -264,8 +265,10 @@ export default function ManageUsers() {
             <tbody>
               {users.map((user) => (
                 <tr key={user._id} className="border-b">
-                  <td className="p-2">
+                  <td className="p-2 font-semibold underline">
+                  <Link href={`/admin/users/${user._id}`}>
                     {user.first_name} {user.last_name}
+                  </Link>
                   </td>
                   <td className="p-2">{user.email}</td>
                   <td className="p-2">
@@ -293,7 +296,7 @@ export default function ManageUsers() {
 
         {/* PAGINATION (only if not in search mode) */}
         {!isSearching && !loading && users.length > 0 && (
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex justify-around gap-2">
             <button
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
               disabled={page <= 1}

@@ -124,14 +124,11 @@ const updateCommunity = async (req, res, next) => {
  */
 const deleteCommunity = async (req, res, next) => {
   try {
-    const community = await Community.findById(req.params.communityId);
-
-    if (!community) {
-      return res.status(404).json({ message: "Community not found" });
-    }
-
-    await community.remove();
-    res.status(200).json({ message: "Community deleted successfully" });
+    const community = await Community.findByIdAndDelete(req.params.communityId);
+      if (!community) {
+        return res.status(404).json({ message: "Community not found" });
+      }
+      res.status(200).json({ message: "Community deleted successfully" });
   } catch (error) {
     next(error);
   }
