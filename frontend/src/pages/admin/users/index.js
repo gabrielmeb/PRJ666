@@ -7,6 +7,7 @@ export default function ManageUsers() {
   // STATE
   // ----------------------
   const [users, setUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,7 +47,7 @@ export default function ManageUsers() {
   useEffect(() => {
     if (isSearching) return; // skip normal fetch if user is in search mode
     fetchUsers(page, limit);
-  }, [page, limit, isSearching]);
+  }, [page, limit, isSearching, totalUsers]);
 
   // ----------------------
   // FETCH ALL USERS
@@ -80,6 +81,7 @@ export default function ManageUsers() {
       setUsers(data.users || []);
       if (data.page) setPage(data.page);
       if (data.totalPages) setTotalPages(data.totalPages);
+      if (data.totalCount) setTotalUsers(data.totalCount)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -177,6 +179,7 @@ export default function ManageUsers() {
 
       // Remove from UI
       setUsers((prev) => prev.filter((user) => user._id !== userId));
+      setTotalUsers((prevTotal) => Math.max(0, prevTotal - 1)); 
       setSuccessMessage("User removed successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -241,7 +244,7 @@ export default function ManageUsers() {
       {/* MAIN TABLE */}
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">
-          {isSearching ? "Search Results" : "All Users"}
+          {isSearching ? "Search Results" : `All Users (${totalUsers})`}
         </h2>
 
         {/* Loading Spinner */}

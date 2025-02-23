@@ -6,6 +6,7 @@ import Link from "next/link";
 export default function ManageCommunities() {
   const router = useRouter();
   const [communities, setCommunities] = useState([]);
+  const [totalCommunities, setTotalCommunities] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -91,6 +92,7 @@ export default function ManageCommunities() {
       setCommunities(data.communities || []);
       if (data.page) setPage(data.page);
       if (data.totalPages) setTotalPages(data.totalPages);
+      if (data.totalCount) setTotalCommunities(data.totalCount)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -188,6 +190,7 @@ export default function ManageCommunities() {
       setCommunities((prev) =>
         prev.filter((community) => community._id !== communityId)
       );
+      setTotalCommunities((prevTotal) => Math.max(0, prevTotal - 1));
       setSuccessMessage("Community removed successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -242,6 +245,7 @@ export default function ManageCommunities() {
 
       // Insert the newly created community into our list
       setCommunities((prev) => [data.community, ...prev]);
+      setTotalCommunities((prevTotal) => Math.max(0, prevTotal + 1));
       setSuccessMessage("Community created successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
 
@@ -370,7 +374,7 @@ export default function ManageCommunities() {
       {/* COMMUNITIES TABLE */}
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">
-          {isSearching ? "Search Results" : "All Communities"}
+          {isSearching ? "Search Results" : `All Communities (${totalCommunities})`}
         </h2>
 
         {/* LOADING STATES */}
