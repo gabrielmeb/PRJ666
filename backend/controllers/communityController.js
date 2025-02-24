@@ -1,4 +1,5 @@
 const Community = require("../models/communityModel");
+const UserCommunity = require("../models/userCommunityModel");
 const { validationResult } = require("express-validator");
 
 /**
@@ -27,6 +28,18 @@ const createCommunity = async (req, res, next) => {
     res
       .status(201)
       .json({ message: "Community created successfully", community: newCommunity });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get total number of communities
+// @route   GET /api/communities/total
+// @access  Private (Admin Only)
+const getTotalCommunities = async (req, res, next) => {
+  try {
+    const totalCommunities = await Community.countDocuments();
+    res.status(200).json({ totalCommunities });
   } catch (error) {
     next(error);
   }
@@ -81,6 +94,77 @@ const getCommunityById = async (req, res, next) => {
       return res.status(404).json({ message: "Community not found" });
     }
     res.status(200).json(community);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get top 5 communities with the most users
+// @route   GET /api/communities/top
+// @access  Private (Admin Only)
+const getTopCommunities = async (req, res, next) => {
+  try {
+    const topCommunities = await UserCommunity.aggregate([
+      {
+        $group: {
+          _id: "$community_id",
+          memberCount: { $sum: 1 }
+        }
+      },
+      { $sort: { memberCount: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "communities",
+          localField: "_id",
+          foreignField: "_id",
+          as: "community"
+        }
+      },
+      { $unwind: "$community" },
+      {
+        $project: {
+          _id: "$community._id",
+          name: "$community.name",
+          description: "$community.description",
+          memberCount: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({ topCommunities });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get number of communities created in the last week
+// @route   GET /api/communities/weekly-registrations
+// @access  Private (Admin Only)
+const getCommunitiesCreatedLastWeek = async (req, res, next) => {
+  try {
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const count = await Community.countDocuments({ createdAt: { $gte: lastWeek } });
+
+    res.status(200).json({ communitiesCreatedLastWeek: count });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get number of communities created in the last month
+// @route   GET /api/communities/monthly-registrations
+// @access  Private (Admin Only)
+const getCommunitiesCreatedLastMonth = async (req, res, next) => {
+  try {
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    const count = await Community.countDocuments({ createdAt: { $gte: lastMonth } });
+
+    res.status(200).json({ communitiesCreatedLastMonth: count });
   } catch (error) {
     next(error);
   }
@@ -189,6 +273,10 @@ const searchCommunities = async (req, res, next) => {
 
 module.exports = {
   createCommunity,
+  getTotalCommunities,
+  getTopCommunities,
+  getCommunitiesCreatedLastWeek,
+  getCommunitiesCreatedLastMonth,
   getAllCommunities,
   getCommunityById,
   updateCommunity,

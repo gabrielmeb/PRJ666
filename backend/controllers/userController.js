@@ -98,6 +98,18 @@ const loginUser = async (req, res, next) => {
   }
 };
 
+// @desc    Get total number of users
+// @route   GET /api/users/total
+// @access  Private (Admin Only)
+const getTotalUsers = async (req, res, next) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    res.status(200).json({ totalUsers });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get all users (Admin only)
 // @route   GET /api/users
 // @access  Private (Admin only)
@@ -195,6 +207,37 @@ const searchUsers = async (req, res, next) => {
   }
 };
 
+// @desc    Get number of users joined in the last week
+// @route   GET /api/users/weekly-registrations
+// @access  Private (Admin Only)
+const getUsersJoinedLastWeek = async (req, res, next) => {
+  try {
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const count = await User.countDocuments({ createdAt: { $gte: lastWeek } });
+
+    res.status(200).json({ usersJoinedLastWeek: count });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get number of users joined in the last month
+// @route   GET /api/users/monthly-registrations
+// @access  Private (Admin Only)
+const getUsersJoinedLastMonth = async (req, res, next) => {
+  try {
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    const count = await User.countDocuments({ createdAt: { $gte: lastMonth } });
+
+    res.status(200).json({ usersJoinedLastMonth: count });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // @desc    Update user details
 // @route   PUT /api/users/:id
@@ -253,6 +296,9 @@ module.exports = {
   getAllUsers,
   getUserById,
   searchUsers,
+  getTotalUsers,
+  getUsersJoinedLastWeek,
+  getUsersJoinedLastMonth,
   updateUser,
   deleteUser
 };

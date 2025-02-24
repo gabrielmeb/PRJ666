@@ -28,6 +28,35 @@ const addContent = async (req, res, next) => {
   }
 };
 
+// @desc    Get total number of content items
+// @route   GET /api/content/total
+// @access  Private (Admin Only)
+const getTotalContentItems = async (req, res, next) => {
+  try {
+    const totalContent = await ContentLibrary.countDocuments();
+    res.status(200).json({ totalContent });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get most popular content categories
+// @route   GET /api/content/popular-categories
+// @access  Public
+const getMostPopularCategories = async (req, res, next) => {
+  try {
+    const categories = await ContentLibrary.aggregate([
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 3 }
+    ]);
+
+    res.status(200).json({ topCategories: categories });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get all content with pagination
 // @route   GET /api/content
 // @access  Public
@@ -68,6 +97,44 @@ const getContentByCategory = async (req, res, next) => {
     }
 
     res.status(200).json({ page, limit, count: content.length, content });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get recently added content (last 7 days)
+// @route   GET /api/content/recent
+// @access  Public
+const getRecentContent = async (req, res, next) => {
+  try {
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const recentContent = await ContentLibrary.find({ createdAt: { $gte: lastWeek } }).lean();
+
+    res.status(200).json({ recentContent });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Search content by title or description
+// @route   GET /api/content/search?q=query
+// @access  Public
+const searchContent = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const regex = new RegExp(q, "i");
+    const content = await ContentLibrary.find({
+      $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }]
+    }).lean();
+
+    res.status(200).json({ results: content });
   } catch (error) {
     next(error);
   }
@@ -123,8 +190,12 @@ const deleteContent = async (req, res, next) => {
 
 module.exports = {
   addContent,
+  getTotalContentItems,
+  getMostPopularCategories,
   getAllContent,
   getContentByCategory,
+  getRecentContent,
+  searchContent,
   updateContent,
   deleteContent
 };

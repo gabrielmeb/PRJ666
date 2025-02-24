@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import AdminLayout from "@/components/AdminLayout";
 import { Bar, Line, Pie } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
@@ -7,6 +8,7 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 export default function AdminDashboard() {
+  const [currentAdmin, setCurrentAdmin] = useState(null);
   // ---------------------------
   // STATE: Overview Metrics
   // ---------------------------
@@ -41,36 +43,50 @@ export default function AdminDashboard() {
   // EFFECT: Fetch Dashboard Data
   // ---------------------------
   useEffect(() => {
+    // Get current logged-in admin info from localStorage
+    const storedAdmin = localStorage.getItem("adminInfo");
+    if (storedAdmin) {
+      setCurrentAdmin(JSON.parse(storedAdmin));
+    }
+
     const fetchDashboardData = async () => {
-      setLoading(true);
-      setError("");
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        setError("Not authenticated. Please log in.");
+        setLoading(false);
+        return;
+      }
 
       try {
-        /**
-         * 1) Fetch Real API Data (Where Possible)
-         *    Suppose you have an endpoint: /api/admin/stats/overview
-         *    that returns JSON like:
-         *    {
-         *       "totalUsers": 2340,
-         *       "activePartnerships": 18,
-         *       "monthlyRevenue": 12450,
-         *       "totalCommunities": 42,
-         *       "newSignupsThisWeek": 143,
-         *       "userFeedbackTickets": 5
-         *    }
-         */
-        // Example Real Call:
-        // const resOverview = await fetch(
-        //   `${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats/overview`,
-        //   {
-        //     headers: { Authorization: `Bearer ${token}` },
-        //   }
-        // );
-        // if (!resOverview.ok) {
-        //   throw new Error("Failed to fetch overview stats");
-        // }
-        // const dataOverview = await resOverview.json();
+        setLoading(true);
+        setError("");
+        
+        const [
+          usersRes,
+          communitiesRes,
+          weeklySignupsRes,
+          feedbackStatsRes
+        ] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/total`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities/total`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/joined-last-week`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/feedback/stats`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ]);
 
+        const usersData = await usersRes.json();
+        const communitiesData = await communitiesRes.json();
+        const weeklySignupsData = await weeklySignupsRes.json();
+        const feedbackStatsData = await feedbackStatsRes.json();
+      
         // For demonstration, let's pretend we made the call and parse dummy data:
         const dataOverview = {
           totalUsers: 2340,
@@ -82,12 +98,12 @@ export default function AdminDashboard() {
         };
 
         // Set metrics
-        setTotalUsers(dataOverview.totalUsers);
+        setTotalUsers(usersData.totalUsers || 0);
         setActivePartnerships(dataOverview.activePartnerships);
         setMonthlyRevenue(dataOverview.monthlyRevenue);
-        setTotalCommunities(dataOverview.totalCommunities);
-        setNewSignupsThisWeek(dataOverview.newSignupsThisWeek);
-        setUserFeedbackTickets(dataOverview.userFeedbackTickets);
+        setTotalCommunities(communitiesData.totalCommunities || 0);
+        setNewSignupsThisWeek(weeklySignupsData.usersJoinedLastWeek || 0);
+        setUserFeedbackTickets(feedbackStatsData.totalFeedback || 0);
 
         /**
          * 2) For Graphs, either fetch from separate endpoints or use dummy data
@@ -200,18 +216,25 @@ export default function AdminDashboard() {
 
       {/* Overview Cards */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold">👥 Total Users</h2>
-          <p className="text-3xl font-bold text-purple-600">{totalUsers}</p>
-        </div>
+        <Link href="/admin/users" passHref>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold">👥 Total Users</h2>
+            <p className="text-3xl font-bold text-purple-600">{totalUsers}</p>
+          </div>
+        </Link>
+
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold">💼 Active Partnerships</h2>
           <p className="text-3xl font-bold text-blue-600">{activePartnerships}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold">🏘️ Total Communities</h2>
-          <p className="text-3xl font-bold text-teal-600">{totalCommunities}</p>
-        </div>
+
+        <Link href="/admin/communities" passHref>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold">🏘️ Total Communities</h2>
+            <p className="text-3xl font-bold text-teal-600">{totalCommunities}</p>
+          </div>
+        </Link>
+        
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold">💰 Monthly Revenue</h2>
           <p className="text-3xl font-bold text-green-600">${monthlyRevenue}</p>
