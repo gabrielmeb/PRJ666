@@ -47,14 +47,15 @@ router.put("/profile", protectAdmin, updateAdminProfile);
 // SuperAdmin Only: Delete an admin
 router.delete("/admins/:id", protectAdmin, authorizeAdmin(["SuperAdmin"]), deleteAdmin);
 
+
+// Get user by first and last name
+router.get("/users/search", protectAdmin,authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchUsers);
+
 // All admins: Get all users
 router.get("/users", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllUsers);
 
 // All admins: Get users by id
 router.get("/users/:id", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getUserById);
-
-// Get user by first and last name
-router.get("/users/search", protectAdmin,authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchUsers);
 
 // SuperAdmin & Admin: Delete a user
 router.delete("/users/:id", protectAdmin, authorizeAdmin(["SuperAdmin", "Admin"]), deleteUser);

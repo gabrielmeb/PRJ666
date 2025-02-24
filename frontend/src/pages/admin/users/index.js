@@ -123,14 +123,17 @@ export default function ManageUsers() {
           },
         }
       );
-
+      console.log(response)
       const data = await response.json();
+      console.log(data)
       if (!response.ok) {
+        console.log("Response NOT OK")
         throw new Error(data.message || "Failed to search users.");
       }
 
       // data should have { count, users }
       setUsers(data.users || []);
+      setTotalUsers(data.count)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -244,7 +247,7 @@ export default function ManageUsers() {
       {/* MAIN TABLE */}
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">
-          {isSearching ? "Search Results" : `All Users (${totalUsers})`}
+          {isSearching ? `Search Results (${totalUsers})` : `All Users (${totalUsers})`}
         </h2>
 
         {/* Loading Spinner */}

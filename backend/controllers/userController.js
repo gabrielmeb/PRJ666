@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/userModel");
 const UserProfile = require("../models/userProfileModel");
 const jwt = require("jsonwebtoken");
@@ -135,7 +136,15 @@ const getAllUsers = async (req, res, next) => {
 // @access  Private
 const getUserById = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select("-password").populate("profile").lean();
+    const userId = req.params.id;
+
+    // 🔥 Fix: Validate ObjectId before querying MongoDB
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID format" });
+    }
+
+    const user = await User.findById(userId).select("-password").populate("profile").lean();
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json(user);
@@ -150,41 +159,42 @@ const getUserById = async (req, res, next) => {
 const searchUsers = async (req, res, next) => {
   try {
     const { q } = req.query;
-    if (!q) {
+
+    if (!q || q.trim() === "") {
       return res.status(400).json({ message: "Search query is required" });
     }
-    
-    // Create a case-insensitive regex from the query string
+
+    let queryConditions = [];
     const regex = new RegExp(q, "i");
 
-    // Use an aggregation pipeline to add computed fields for full name and reversed name.
-    const users = await User.aggregate([
-      {
-        $addFields: {
-          fullName: { $concat: ["$first_name", " ", "$last_name"] },
-          reversedName: { $concat: ["$last_name", " ", "$first_name"] }
-        }
-      },
-      {
-        $match: {
-          $or: [
-            { first_name: { $regex: regex } },
-            { last_name: { $regex: regex } },
-            { fullName: { $regex: regex } },
-            { reversedName: { $regex: regex } }
-          ]
-        }
-      },
-      {
-        $project: { password: 0 } // Exclude password field
-      }
-    ]);
-    
+    if (mongoose.Types.ObjectId.isValid(q) && q.length === 24) {
+      queryConditions.push({ _id: new mongoose.Types.ObjectId(q) });
+    }
+
+    queryConditions.push(
+      { first_name: { $regex: regex } },
+      { last_name: { $regex: regex } },
+      { email: { $regex: regex } },
+      { $expr: { $regexMatch: { input: { $concat: ["$first_name", " ", "$last_name"] }, regex } } }
+    );
+
+    if (queryConditions.length === 0) {
+      return res.status(400).json({ message: "Invalid search query." });
+    }
+
+    const users = await User.find({ $or: queryConditions }).select("-password");
+
     res.status(200).json({ count: users.length, users });
   } catch (error) {
-    next(error);
+    console.error("❌ Search error:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : null,
+    });
   }
 };
+
 
 // @desc    Update user details
 // @route   PUT /api/users/:id

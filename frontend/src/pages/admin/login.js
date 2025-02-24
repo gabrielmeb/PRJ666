@@ -42,10 +42,11 @@ const AdminLogin = () => {
         throw new Error(result.message || "Login failed");
       }
 
-      // Check if the logged-in user is an admin or super admin
-      if (result.admin.role !== "Admin" && result.admin.role !== "SuperAdmin") {
-        throw new Error("Unauthorized: You are not an admin");
+      // Check if the logged-in user is an Admin, SuperAdmin, or Moderator
+      if (!["Admin", "SuperAdmin", "Moderator"].includes(result.admin.role)) {
+        throw new Error("Unauthorized: You do not have permission.");
       }
+
 
       // Store token and admin info in localStorage
       localStorage.setItem("adminToken", result.token);
