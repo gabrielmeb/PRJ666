@@ -17,7 +17,6 @@ const ContentLibrarySchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Fitness", "Finance", "Productivity", "Mental Health"],
       required: [true, "Category is required"],
       index: true, // Optimized for category searches.
     },

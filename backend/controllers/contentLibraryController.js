@@ -40,6 +40,16 @@ const getTotalContentItems = async (req, res, next) => {
   }
 };
 
+
+const getAllCategories = async (req, res, next) => {
+  try {
+    const categories = await ContentLibrary.distinct("category");
+    res.status(200).json({ categories });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get most popular content categories
 // @route   GET /api/content/popular-categories
 // @access  Public
@@ -191,6 +201,7 @@ const deleteContent = async (req, res, next) => {
 module.exports = {
   addContent,
   getTotalContentItems,
+  getAllCategories,
   getMostPopularCategories,
   getAllContent,
   getContentByCategory,

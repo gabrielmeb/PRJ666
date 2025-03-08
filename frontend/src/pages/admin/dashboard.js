@@ -223,17 +223,17 @@ export default function AdminDashboard() {
           </div>
         </Link>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold">💼 Active Partnerships</h2>
-          <p className="text-3xl font-bold text-blue-600">{activePartnerships}</p>
-        </div>
-
         <Link href="/admin/communities" passHref>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold">🏘️ Total Communities</h2>
             <p className="text-3xl font-bold text-teal-600">{totalCommunities}</p>
           </div>
         </Link>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-lg font-semibold">💼 Active Partnerships</h2>
+          <p className="text-3xl font-bold text-blue-600">{activePartnerships}</p>
+        </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold">💰 Monthly Revenue</h2>

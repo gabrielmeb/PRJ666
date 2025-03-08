@@ -40,6 +40,7 @@ const {
   getTotalContentItems,
   getMostPopularCategories,
   getAllContent,
+  getAllCategories,
   getContentByCategory,
   getRecentContent,
   searchContent,
@@ -107,6 +108,7 @@ router.get("/communities/:communityId", protectAdmin, authorizeAdmin(["Admin", "
 router.post("/content", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), addContent);
 router.get("/content", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllContent);
 router.get("/content/total", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getTotalContentItems);
+router.get("/content/categories", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getAllCategories);
 router.get("/content/popular-categories", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getMostPopularCategories);
 router.get("/content/recent", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), getRecentContent);
 router.get("/content/search", protectAdmin, authorizeAdmin(["Admin", "SuperAdmin", "Moderator"]), searchContent);
