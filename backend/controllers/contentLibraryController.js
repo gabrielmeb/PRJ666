@@ -185,14 +185,13 @@ const updateContent = async (req, res, next) => {
 // @access  Private (Admin Only)
 const deleteContent = async (req, res, next) => {
   try {
-    const content = await ContentLibrary.findById(req.params.contentId);
+    const content = await ContentLibrary.findByIdAndDelete(req.params.contentId);
 
     if (!content) {
       return res.status(404).json({ message: "Content not found" });
     }
 
-    await content.remove();
-    res.status(200).json({ message: "Content deleted successfully" });
+    return res.status(200).json({ message: "Content deleted successfully" });
   } catch (error) {
     next(error);
   }

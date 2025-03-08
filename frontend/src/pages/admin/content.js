@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import AdminLayout from "../../components/AdminLayout";
 
-// A small helper to fetch with admin auth
+// A helper function to perform fetch with authorization
 async function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem("adminToken");
   const headers = {
@@ -19,23 +19,51 @@ async function fetchWithAuth(url, options = {}) {
   return response.json();
 }
 
-// Helper to pick a random image URL for a given category
+/**
+ * A component that shows text truncated to a given number of lines.
+ * When "Show More" is clicked, the container's maxHeight is removed so the
+ * full text is displayed, expanding the card.
+ */
+function TruncatedText({ text, lines = 4 }) {
+  const [expanded, setExpanded] = useState(false);
+  // Calculate approximate line height (1.5em assumed) multiplied by the number of lines
+  const collapsedHeight = `calc(1.5em * ${lines})`;
+
+  return (
+    <div>
+      <div
+        className="overflow-hidden transition-all duration-300"
+        style={{ maxHeight: expanded ? "none" : collapsedHeight }}
+      >
+        <p className="text-sm text-gray-700">{text}</p>
+      </div>
+      {text && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-1 text-blue-600 hover:underline text-xs"
+        >
+          {expanded ? "Show Less" : "Show More"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Returns a local image path based on the category.
+ * The category name is converted to a slug and a random number from 1 to 3 is added.
+ */
 function getRandomCategoryImage(category) {
   if (category) {
-      // Convert category name to lowercase, replace spaces & special chars with hyphens
     const formattedCategory = category
       .toLowerCase()
-      .replace(/&/g, "and") // Convert '&' to 'and'
-      .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric with '-'
-      .replace(/-+/g, "-") // Remove multiple dashes
-      .replace(/^-|-$/g, ""); // Trim leading/trailing dashes
-  
-    // Generate a random number (adjust the max range based on available images per category)
-    const randomIndex = Math.floor(Math.random() * 3) + 1; // Assuming 3 images per category
-  
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    const randomIndex = Math.floor(Math.random() * 3) + 1;
     return `/category_images/${formattedCategory}-${randomIndex}.jpg`;
   }
-  // fallback if category is unknown
   return "https://placehold.co/300x200?text=Content";
 }
 
@@ -45,9 +73,8 @@ export default function ContentLibrary() {
   const [topCategories, setTopCategories] = useState([]);
   const [recentContent, setRecentContent] = useState([]);
 
-  // Distinct categories from the backend
+  // Distinct categories (from backend)
   const [categories, setCategories] = useState([]);
-  // For filtering
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Content items
@@ -69,15 +96,30 @@ export default function ContentLibrary() {
     url: "",
   });
 
-  // Search & pagination
+  // Search & Pagination
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(6); // number of items (cards) per page
+  const [limit, setLimit] = useState(6);
   const [totalCount, setTotalCount] = useState(0);
 
-  // --------------------------------------------------------------
-  // 1) Fetch Stats: total content, top categories, recent content
-  // --------------------------------------------------------------
+  // Error message display
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // ----------------------------------------------------
+  // Debounce search input
+  // ----------------------------------------------------
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchTerm);
+      setPage(1); // reset to first page on new search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // ----------------------------------------------------
+  // 1) Fetch Stats: Total, Popular, Recent
+  // ----------------------------------------------------
   const fetchStats = async () => {
     try {
       const totalRes = await fetchWithAuth(
@@ -96,31 +138,32 @@ export default function ContentLibrary() {
       setRecentContent(recentRes.recentContent || []);
     } catch (error) {
       console.error("Stats error:", error);
+      setErrorMessage(error.message);
     }
   };
 
-  // --------------------------------------------------------------
-  // 2) Fetch Distinct Categories
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
+  // 2) Fetch Categories
+  // ----------------------------------------------------
   const fetchCategories = async () => {
     try {
-      // We assume you've created an endpoint: GET /api/admin/content/categories
       const data = await fetchWithAuth(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content/categories`
       );
       setCategories(data.categories || []);
     } catch (error) {
       console.error("Categories error:", error);
+      setErrorMessage(error.message);
     }
   };
 
-  // --------------------------------------------------------------
-  // 3) Fetch Content w/ pagination, search, category
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
+  // 3) Fetch Content with Pagination, Search & Filter
+  // ----------------------------------------------------
   const fetchContent = async () => {
     setLoading(true);
+    setErrorMessage("");
     try {
-      // if there's a search query => /search
       if (searchQuery.trim()) {
         const sr = await fetchWithAuth(
           `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content/search?q=${encodeURIComponent(
@@ -128,26 +171,20 @@ export default function ContentLibrary() {
           )}`
         );
         let items = sr.results || [];
-        // filter by category if not "All"
         if (selectedCategory !== "All") {
           items = items.filter((i) => i.category === selectedCategory);
         }
-        // client-side pagination
         const start = (page - 1) * limit;
         const end = start + limit;
         setContentItems(items.slice(start, end));
         setTotalCount(items.length);
-      }
-      // if no search but category != All => /category/:cat
-      else if (selectedCategory !== "All") {
+      } else if (selectedCategory !== "All") {
         const cr = await fetchWithAuth(
           `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content/category/${selectedCategory}?limit=${limit}&page=${page}`
         );
         setContentItems(cr.content || []);
         setTotalCount(page * (cr.count || 0));
-      }
-      // otherwise => all content
-      else {
+      } else {
         const ar = await fetchWithAuth(
           `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content?limit=${limit}&page=${page}`
         );
@@ -156,42 +193,69 @@ export default function ContentLibrary() {
       }
     } catch (error) {
       console.error("Content fetch error:", error);
+      setErrorMessage(error.message);
     }
     setLoading(false);
   };
 
-  // --------------------------------------------------------------
-  // 4) Create Content
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
+  // 4) Create New Content
+  // ----------------------------------------------------
   const handleAddContent = async () => {
-    if (
-      !newContent.title ||
-      !newContent.description ||
-      !newContent.category ||
-      !newContent.url
-    ) {
-      alert("Please fill all fields.");
+    setErrorMessage("");
+    const { title, description, category, url } = newContent;
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const trimmedCategory = category.trim();
+    const trimmedUrl = url.trim();
+
+    if (!trimmedTitle || !trimmedDescription || !trimmedCategory || !trimmedUrl) {
+      alert("All fields are required.");
       return;
     }
+
+    if (trimmedTitle.length < 3 || trimmedTitle.length > 200) {
+      alert("Title must be between 3 and 200 characters.");
+      return;
+    }
+
+    if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
+      alert("Description must be between 10 and 1000 characters.");
+      return;
+    }
+
+    const urlPattern = /^(http|https):\/\/[^ "]+$/;
+    if (!urlPattern.test(trimmedUrl)) {
+      alert("Invalid URL format. Must start with http:// or https://");
+      return;
+    }
+
+    const validContent = {
+      title: trimmedTitle,
+      description: trimmedDescription,
+      category: trimmedCategory,
+      url: trimmedUrl,
+    };
+
     try {
       await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/content`, {
         method: "POST",
-        body: JSON.stringify(newContent),
+        body: JSON.stringify(validContent),
       });
-      // clear form
       setNewContent({ title: "", description: "", category: "", url: "" });
       setPage(1);
       fetchContent();
       fetchStats();
     } catch (error) {
       console.error("Add content error:", error);
-      alert("Failed to add content. Check console.");
+      setErrorMessage(error.message);
+      alert("Failed to add content. Please check the console for details.");
     }
   };
 
-  // --------------------------------------------------------------
-  // 5) Editing/Updating Content
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
+  // 5) Edit / Update Content
+  // ----------------------------------------------------
   const startEditing = (item) => {
     setEditingId(item._id);
     setEditingData({
@@ -203,12 +267,9 @@ export default function ContentLibrary() {
   };
 
   const handleUpdateContent = async () => {
-    if (
-      !editingData.title ||
-      !editingData.description ||
-      !editingData.category ||
-      !editingData.url
-    ) {
+    setErrorMessage("");
+    const { title, description, category, url } = editingData;
+    if (!title.trim() || !description.trim() || !category.trim() || !url.trim()) {
       alert("All fields are required for update.");
       return;
     }
@@ -226,15 +287,17 @@ export default function ContentLibrary() {
       fetchStats();
     } catch (error) {
       console.error("Update content error:", error);
+      setErrorMessage(error.message);
       alert("Failed to update content. Check console.");
     }
   };
 
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
   // 6) Delete Content
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
   const handleDeleteContent = async (id) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
+    setErrorMessage("");
     try {
       await fetchWithAuth(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content/${id}`,
@@ -244,21 +307,22 @@ export default function ContentLibrary() {
       fetchStats();
     } catch (error) {
       console.error("Delete content error:", error);
+      setErrorMessage(error.message);
       alert("Failed to delete content. Check console.");
     }
   };
 
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
   // 7) Pagination Controls
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
   const nextPage = () => setPage((p) => p + 1);
   const prevPage = () => {
     if (page > 1) setPage((p) => p - 1);
   };
 
-  // --------------------------------------------------------------
-  // useEffect
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
+  // useEffect: Initial Fetches and re-fetch on dependency changes
+  // ----------------------------------------------------
   useEffect(() => {
     fetchStats();
     fetchCategories();
@@ -266,51 +330,29 @@ export default function ContentLibrary() {
 
   useEffect(() => {
     fetchContent();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit, selectedCategory, searchQuery]);
+  }, [searchQuery, selectedCategory, page, limit]);
 
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
   // RENDER
-  // --------------------------------------------------------------
+  // ----------------------------------------------------
   return (
     <AdminLayout>
-      <div className="p-4 space-y-8">
+      <div className="p-4 space-y-6">
+        {errorMessage && (
+          <div className="bg-red-100 text-red-700 p-2 rounded">
+            <p>{errorMessage}</p>
+          </div>
+        )}
+
         {/* Stats & Summaries */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-row space-x-4">
           {/* Total Content */}
-          <div className="bg-white p-4 rounded shadow">
+          <div className="bg-white p-4 rounded shadow flex-1">
             <h2 className="font-bold text-lg mb-2">Total Content Items</h2>
             <p className="text-3xl font-semibold">{totalContent}</p>
           </div>
-
-          {/* Top Categories */}
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="font-bold text-lg mb-2">Popular Categories</h2>
-            <div className="flex flex-col space-y-2">
-              {topCategories.map((cat) => (
-                <div
-                  key={cat._id}
-                  className="border border-gray-200 p-2 rounded flex items-center gap-2"
-                >
-                  <Image
-                    src={getRandomCategoryImage(cat._id)}
-                    alt={cat._id}
-                    width={64}
-                    height={64} 
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <div>
-                    <h3 className="font-semibold">{cat._id}</h3>
-                    <p className="text-sm">Count: {cat.count}</p>
-                  </div>
-                </div>
-              ))}
-              {topCategories.length === 0 && <p>No categories yet.</p>}
-            </div>
-          </div>
-
           {/* Recently Added */}
-          <div className="bg-white p-4 rounded shadow">
+          <div className="bg-white p-4 rounded shadow flex-1">
             <h2 className="font-bold text-lg mb-2">Recently Added</h2>
             {recentContent.length ? (
               recentContent.map((rc) => (
@@ -321,6 +363,32 @@ export default function ContentLibrary() {
             ) : (
               <p className="text-sm">No recent content found.</p>
             )}
+          </div>
+        </div>
+
+        {/* Top Categories */}
+        <div className="bg-white p-4 rounded shadow">
+          <h2 className="font-bold text-lg mb-2">Popular Categories</h2>
+          <div className="flex flex-col space-y-2">
+            {topCategories.map((cat) => (
+              <div
+                key={cat._id}
+                className="border border-gray-200 p-2 rounded flex items-center gap-2"
+              >
+                <Image
+                  src={getRandomCategoryImage(cat._id)}
+                  alt={cat._id}
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <div>
+                  <h3 className="font-semibold">{cat._id}</h3>
+                  <p className="text-sm">Count: {cat.count}</p>
+                </div>
+              </div>
+            ))}
+            {topCategories.length === 0 && <p>No categories yet.</p>}
           </div>
         </div>
 
@@ -367,7 +435,9 @@ export default function ContentLibrary() {
               placeholder="URL (link or reference)"
               className="border p-2 flex-1"
               value={newContent.url}
-              onChange={(e) => setNewContent({ ...newContent, url: e.target.value })}
+              onChange={(e) =>
+                setNewContent({ ...newContent, url: e.target.value })
+              }
             />
           </div>
           <button
@@ -386,11 +456,8 @@ export default function ContentLibrary() {
               type="text"
               placeholder="Search by title/description..."
               className="border p-2 flex-1"
-              value={searchQuery}
-              onChange={(e) => {
-                setPage(1);
-                setSearchQuery(e.target.value);
-              }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <select
               className="border p-2"
@@ -410,7 +477,7 @@ export default function ContentLibrary() {
           </div>
         </div>
 
-        {/* Content Items (Displayed as Cards) */}
+        {/* Content Items (Cards) */}
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold text-xl mb-4">Manage Content</h2>
           {loading ? (
@@ -420,7 +487,6 @@ export default function ContentLibrary() {
               {contentItems.map((item) => {
                 const isEditing = editingId === item._id;
                 if (isEditing) {
-                  // Editing form
                   return (
                     <div key={item._id} className="border rounded p-3 flex flex-col">
                       <input
@@ -493,7 +559,6 @@ export default function ContentLibrary() {
                     </div>
                   );
                 } else {
-                  // Normal card display
                   const imgUrl = getRandomCategoryImage(item.category);
                   return (
                     <div
@@ -507,23 +572,25 @@ export default function ContentLibrary() {
                         height={160}
                         className="w-full h-40 object-cover rounded mb-2"
                       />
-                      <h3 className="font-bold mb-1">{item.title}</h3>
-                      <p className="text-sm mb-2 text-gray-700">
-                        {item.description}
-                      </p>
-                      <p className="text-xs mb-1 text-gray-500 font-semibold">
+                      <h3 className="font-bold mb-1">
+                        {item.url ? (
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:underline"
+                          >
+                            {item.title}
+                          </a>
+                        ) : (
+                          item.title
+                        )}
+                      </h3>
+
+                      <TruncatedText text={item.description} lines={4} />
+                      <p className="text-xs mt-1 mb-1 text-gray-500 font-semibold">
                         Category: {item.category}
                       </p>
-                      {item.url && (
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-600 text-sm hover:underline"
-                        >
-                          Visit Link
-                        </a>
-                      )}
                       <div className="mt-auto flex gap-2 pt-2">
                         <button
                           onClick={() => startEditing(item)}
@@ -551,7 +618,7 @@ export default function ContentLibrary() {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* Pagination Controls */}
         <div className="bg-white p-4 rounded shadow flex flex-col sm:flex-row items-center justify-between">
           <div className="mb-2 sm:mb-0">
             <button
