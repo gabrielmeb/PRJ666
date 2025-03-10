@@ -16,9 +16,13 @@ export default function AdminDashboard() {
   const [activePartnerships, setActivePartnerships] = useState(0);
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
   const [totalCommunities, setTotalCommunities] = useState(0);
+  const [topCommunities, setTopCommunities] = useState([])
 
-  // Additional example metrics
+  // Additional metrics
   const [newSignupsThisWeek, setNewSignupsThisWeek] = useState(0);
+  const [newSignupsThisMonth, setNewSignupsThisMonth] = useState(0);
+  const [commCreatedThisWeek, setCommCreatedThisWeek] = useState(0);
+  const [commCreatedThisMonth, setCommCreatedThisMonth] = useState(0);
   const [userFeedbackTickets, setUserFeedbackTickets] = useState(0);
 
   // ---------------------------
@@ -66,7 +70,11 @@ export default function AdminDashboard() {
           usersRes,
           communitiesRes,
           weeklySignupsRes,
-          feedbackStatsRes
+          monthlySignupsRes,
+          weeklyCommCreatedRes,
+          monthlyCommCreatedRes,
+          feedbackStatsRes,
+          topCommunitiesRes,
         ] = await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/total`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -77,15 +85,31 @@ export default function AdminDashboard() {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/joined-last-week`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/joined-last-month`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities/created-last-week`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities/created-last-month`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/feedback/stats`, {
             headers: { Authorization: `Bearer ${token}` },
-          })
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/communities/top`, { 
+            headers: { Authorization: `Bearer ${token}` }, 
+          }),
         ]);
 
         const usersData = await usersRes.json();
         const communitiesData = await communitiesRes.json();
         const weeklySignupsData = await weeklySignupsRes.json();
+        const monthlySignupsData = await monthlySignupsRes.json();
+        const weeklyCommData = await weeklyCommCreatedRes.json();
+        const monthlyCommData = await monthlyCommCreatedRes.json();
         const feedbackStatsData = await feedbackStatsRes.json();
+        const topCommunitiesData = await topCommunitiesRes.json();
       
         // For demonstration, let's pretend we made the call and parse dummy data:
         const dataOverview = {
@@ -103,22 +127,12 @@ export default function AdminDashboard() {
         setMonthlyRevenue(dataOverview.monthlyRevenue);
         setTotalCommunities(communitiesData.totalCommunities || 0);
         setNewSignupsThisWeek(weeklySignupsData.usersJoinedLastWeek || 0);
+        setNewSignupsThisMonth(monthlySignupsData.usersJoinedLastMonth || 0);
+        setCommCreatedThisWeek(weeklyCommData.communitiesCreatedLastWeek || 0);
+        setCommCreatedThisMonth(monthlyCommData.communitiesCreatedLastMonth || 0);
         setUserFeedbackTickets(feedbackStatsData.totalFeedback || 0);
+        setTopCommunities(topCommunitiesData.topCommunities || [])
 
-        /**
-         * 2) For Graphs, either fetch from separate endpoints or use dummy data
-         *    e.g., /api/admin/stats/user-growth => { labels: [...], data: [...] }
-         */
-        // Real call example:
-        // const [resUserGrowth, resEngagement, resRevenueTrends, resUserDist] = await Promise.all([
-        //   fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats/user-growth`, { headers: { Authorization: `Bearer ${token}` } }),
-        //   fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats/engagement`, { headers: { Authorization: `Bearer ${token}` } }),
-        //   fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats/revenue-trends`, { headers: { Authorization: `Bearer ${token}` } }),
-        //   fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats/user-distribution`, { headers: { Authorization: `Bearer ${token}` } }),
-        // ]);
-        // parse them similarly
-
-        // We'll mock them here:
         setUserGrowthData({
           labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
           datasets: [
@@ -244,15 +258,27 @@ export default function AdminDashboard() {
       {/* Additional Metrics Cards */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold">New Signups This Week</h2>
+          <h2 className="text-lg font-semibold">New Signups Last Week</h2>
           <p className="text-3xl font-bold text-indigo-600">
             {newSignupsThisWeek}
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold">User Feedback Tickets</h2>
-          <p className="text-3xl font-bold text-amber-600">
-            {userFeedbackTickets} pending
+          <h2 className="text-lg font-semibold">New Signups last Month</h2>
+          <p className="text-3xl font-bold text-indigo-600">
+            {newSignupsThisMonth}
+          </p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-lg font-semibold">New Community Created This Week</h2>
+          <p className="text-3xl font-bold text-indigo-600">
+            {commCreatedThisWeek}
+          </p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-lg font-semibold">New Community Created This Month</h2>
+          <p className="text-3xl font-bold text-indigo-600">
+            {commCreatedThisMonth}
           </p>
         </div>
       </div>
@@ -302,45 +328,39 @@ export default function AdminDashboard() {
 
       {/* Potential Table of Top 5 Communities */}
       <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">🏆 Top 5 Communities</h2>
-        <table className="w-full border">
-          <thead>
-            <tr className="bg-gray-100 border-b">
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Members</th>
-              <th className="p-2 text-left">Created On</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Sample data rows - or real API call */}
-            <tr className="border-b">
-              <td className="p-2">Fitness Enthusiasts</td>
-              <td className="p-2">1,200</td>
-              <td className="p-2">2024-01-15</td>
-            </tr>
-            <tr className="border-b">
-              <td className="p-2">Finance Gurus</td>
-              <td className="p-2">980</td>
-              <td className="p-2">2023-12-10</td>
-            </tr>
-            <tr className="border-b">
-              <td className="p-2">Productivity Hackers</td>
-              <td className="p-2">670</td>
-              <td className="p-2">2023-09-05</td>
-            </tr>
-            <tr className="border-b">
-              <td className="p-2">Mental Wellness</td>
-              <td className="p-2">540</td>
-              <td className="p-2">2023-08-20</td>
-            </tr>
-            <tr>
-              <td className="p-2">Startup Innovators</td>
-              <td className="p-2">430</td>
-              <td className="p-2">2024-02-01</td>
-            </tr>
-          </tbody>
-        </table>
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          🏆 Top 5 Communities
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-200">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700">
+                <th className="py-3 px-4 border border-gray-300 text-left">Name</th>
+                <th className="py-3 px-4 border border-gray-300 text-left">Members</th>
+                <th className="py-3 px-4 border border-gray-300 text-left">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topCommunities.map((comm) => (
+                <tr key={comm._id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 border font-semibold border-gray-300 hover:underline">
+                    <Link href={`/admin/communities/${comm._id}`}>
+                      {comm.name}
+                    </Link>
+                  </td>
+                  <td className="py-3 px-4 border border-gray-300">
+                    {comm.memberCount}
+                  </td>
+                  <td className="py-3 px-4 border border-gray-300">
+                    {comm.description}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </AdminLayout>
   );
 }
