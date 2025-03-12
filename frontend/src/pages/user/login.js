@@ -34,7 +34,8 @@ const Login = () => {
       }
 
       // Optional: store the token or user info in local storage/context
-      // localStorage.setItem("token", result.token);
+      localStorage.setItem("userToken", result.token);
+      localStorage.setItem("userId", result.user._id);
 
       // Redirect user upon successful login
       router.push("/user/home");
