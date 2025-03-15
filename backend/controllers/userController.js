@@ -4,6 +4,8 @@ const UserProfile = require("../models/userProfileModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
+const cloudinary = require("../config/cloudinary");
+
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -246,6 +248,10 @@ const updateUser = async (req, res, next) => {
   try {
     const { first_name, last_name, email, date_of_birth, preferences } = req.body;
 
+    if (typeof preferences === "string") {
+      preferences = JSON.parse(preferences);
+    }
+    
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
