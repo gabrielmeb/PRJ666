@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { RiHome3Line, RiUserLine,RiLineChartLine, RiUserCommunityFill, RiImageAiLine, RiAdminLine } from "react-icons/ri";
+import { RiHome3Line, RiUserLine,RiLineChartLine, RiFeedbackLine, RiUserCommunityFill, RiImageAiLine, RiAdminLine } from "react-icons/ri";
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function Layout({ children }) {
               <Link
                 href="/user/home"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/home")
+                  isActive("/user/home")
                     ? "bg-purple-600 text-white"
                     : "text-gray-700 hover:bg-purple-100"
                 }`}
@@ -52,7 +52,7 @@ export default function Layout({ children }) {
               <Link
                 href="/user/profile"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/profile")
+                  isActive("/user/profile")
                     ? "bg-purple-600 text-white"
                     : "text-gray-700 hover:bg-purple-100"
                 }`}
@@ -64,7 +64,7 @@ export default function Layout({ children }) {
               <Link
                 href="/user/goals"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/goals")
+                  isActive("/user/goals")
                     ? "bg-purple-600 text-white"
                     : "text-gray-700 hover:bg-purple-100"
                 }`}
@@ -74,9 +74,21 @@ export default function Layout({ children }) {
                 <span>Goals</span>
               </Link>
               <Link
+                href="/user/progress"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/user/progress")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <RiLineChartLine size={20} />
+                <span>Progress</span>
+              </Link>
+              <Link
                 href="/user/community"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/community")
+                  isActive("/user/community")
                     ? "bg-purple-600 text-white"
                     : "text-gray-700 hover:bg-purple-100"
                 }`}
@@ -88,7 +100,7 @@ export default function Layout({ children }) {
               <Link
                 href="/user/library"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/library")
+                  isActive("/user/library")
                     ? "bg-purple-600 text-white"
                     : "text-gray-700 hover:bg-purple-100"
                 }`}
@@ -96,6 +108,18 @@ export default function Layout({ children }) {
               >
                 <RiImageAiLine size={20} />
                 <span>Content Library</span>
+              </Link>
+              <Link
+                href="/user/feedback"
+                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
+                  isActive("/user/feedback")
+                    ? "bg-purple-600 text-white"
+                    : "text-gray-700 hover:bg-purple-100"
+                }`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <RiFeedbackLine size={20} />
+                <span>Feedback</span>
               </Link>
               <Link
                 href="/user/admin"

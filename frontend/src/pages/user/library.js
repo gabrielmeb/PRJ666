@@ -1,47 +1,121 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 
-const contentData = [
-  { id: 1, title: "Atomic Habits", category: "Book", url: "#", bookmarked: false },
-  { id: 2, title: "Time Management Mastery", category: "Course", url: "#", bookmarked: true },
-  { id: 3, title: "The Power of Mindfulness", category: "Podcast", url: "#", bookmarked: false },
-];
+export default function ContentPage() {
+  const [token, setToken] = useState("");
+  const [contentList, setContentList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-export default function ContentLibrary() {
-  const [content, setContent] = useState(contentData);
+  // For new content
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [url, setUrl] = useState("");
 
-  const toggleBookmark = (id) => {
-    setContent(
-      content.map((item) =>
-        item.id === id ? { ...item, bookmarked: !item.bookmarked } : item
-      )
-    );
+  useEffect(() => {
+    const t = localStorage.getItem("userToken");
+    if (t) setToken(t);
+  }, []);
+
+  // 1) fetch content
+  useEffect(() => {
+    if (!token) return;
+    const fetchContent = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content?page=1&limit=10`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setContentList(data.content || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setLoading(false);
+    };
+    fetchContent();
+  }, [token]);
+
+  // 2) create content (admin only)
+  const handleCreateContent = async (e) => {
+    e.preventDefault();
+    try {
+      const body = { title, description, category, url };
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContentList((prev) => [data.content, ...prev]);
+        setTitle("");
+        setDescription("");
+        setCategory("");
+        setUrl("");
+      } else {
+        console.error("Failed to create content. Admin only?");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-gray-800">📚 Content Library</h1>
-      <p className="text-gray-500">AI-curated resources to help your growth.</p>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Content Library</h1>
+      {loading && <p>Loading content...</p>}
 
-      <div className="mt-6 grid grid-cols-3 gap-4">
-        {content.map((item) => (
-          <div key={item.id} className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold">{item.title}</h3>
-            <p className="text-sm text-gray-600">{item.category}</p>
-            <a href={item.url} className="text-purple-600 underline mt-2 block">
-              View Content
-            </a>
-            <button
-              onClick={() => toggleBookmark(item.id)}
-              className={`mt-2 px-4 py-2 rounded ${
-                item.bookmarked ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-800"
-              }`}
-            >
-              {item.bookmarked ? "Bookmarked" : "Bookmark"}
-            </button>
-          </div>
+      <form onSubmit={handleCreateContent} className="mb-4 space-y-2">
+        <input
+          type="text"
+          placeholder="Title"
+          className="border p-2 w-full"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <textarea
+          placeholder="Description"
+          className="border p-2 w-full"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Category"
+          className="border p-2 w-full"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="URL"
+          className="border p-2 w-full"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        <button type="submit" className="bg-blue-500 text-white px-3 py-2 rounded">
+          Add Content
+        </button>
+      </form>
+
+      <ul className="space-y-2">
+        {contentList.map((item) => (
+          <li key={item._id} className="border p-2 rounded">
+            <h2 className="font-semibold">{item.title}</h2>
+            <p>{item.description}</p>
+            <p className="text-sm italic">Category: {item.category}</p>
+            {item.url && <a href={item.url}>Link</a>}
+          </li>
         ))}
-      </div>
+      </ul>
+    </div>
     </Layout>
   );
 }
