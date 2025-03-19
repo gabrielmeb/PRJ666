@@ -129,15 +129,9 @@ export default function Navbar() {
                     className="px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     onClick={() => setIsModalOpen(false)}
                   >
-                    <span><UserRoundPen/></span> Profile
+                    <span><UserRoundPen/></span>My Profile
                   </Link>
-                  <Link
-                    href="/user/settings"
-                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    <span><Settings/></span> Settings
-                  </Link>
+                  
                 </div>
 
                 {/* Divider */}

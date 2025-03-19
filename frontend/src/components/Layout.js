@@ -71,19 +71,20 @@ export default function Layout({ children }) {
                 onClick={() => setSidebarOpen(false)}
               >
                 <RiLineChartLine size={20} />
-                <span>Goals</span>
+                <span>Goals &amp; Progress</span>
               </Link>
+              
               <Link
-                href="/user/progress"
+                href="/user/my_communities"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/progress")
+                  isActive("/user/my_communities")
                     ? "bg-purple-600 text-white"
                     : "text-gray-700 hover:bg-purple-100"
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <RiLineChartLine size={20} />
-                <span>Progress</span>
+                <RiUserCommunityFill size={20} />
+                <span>My Community</span>
               </Link>
               <Link
                 href="/user/community"
@@ -95,7 +96,7 @@ export default function Layout({ children }) {
                 onClick={() => setSidebarOpen(false)}
               >
                 <RiUserCommunityFill size={20} />
-                <span>Community</span>
+                <span>Explore Community</span>
               </Link>
               <Link
                 href="/user/library"
