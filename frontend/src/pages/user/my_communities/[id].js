@@ -19,7 +19,7 @@ export default function CommunityDetailPage() {
     if (!communityId) return;
     setLoading(true);
     try {
-      const data = await apiFetch("/messages/community/${communityId}");
+      const data = await apiFetch(`/messages/community/${communityId}`);
       if (reset) {
         setMessages(data.messages);
       } else {
