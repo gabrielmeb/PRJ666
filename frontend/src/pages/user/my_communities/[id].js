@@ -1,7 +1,7 @@
 // pages/communities/[id].jsx
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { apiFetch } from "../../lib/api";
+import { apiFetch } from "@/utils/api";
 
 export default function CommunityDetailPage() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function CommunityDetailPage() {
     if (!communityId) return;
     setLoading(true);
     try {
-      const data = await apiFetch(`/messages/community/${communityId}?page=${page}&limit=${limit}`);
+      const data = await apiFetch("/messages/community/${communityId}");
       if (reset) {
         setMessages(data.messages);
       } else {

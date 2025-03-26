@@ -57,7 +57,7 @@ export default function CommunitiesPage() {
               </div>
               <div>
                 {/* Link to the community detail page */}
-                <Link href={`/communities/${community._id}`}>
+                <Link href={`/user/my_communities/${community._id}`}>
                   <button className="bg-blue-600 text-white px-3 py-1 rounded-md">
                     View
                   </button>
