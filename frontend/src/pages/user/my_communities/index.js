@@ -52,8 +52,8 @@ export default function CommunitiesPage() {
               className="p-4 border rounded-md flex justify-between items-center"
             >
               <div>
-                <p className="font-semibold">{community.name}</p>
-                <p className="text-sm text-gray-600">{community.description}</p>
+                <p className="font-semibold">{community.community_id.name}</p>
+                <p className="text-sm text-gray-600">{community.community_id.description}</p>
               </div>
               <div>
                 {/* Link to the community detail page */}
