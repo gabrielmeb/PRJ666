@@ -4,7 +4,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080
 // Helper to get the JWT token (from cookies, localStorage, etc.)
 function getToken() {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("token") || "";
+    return localStorage.getItem("userToken") || "";
   }
   return "";
 }
@@ -12,7 +12,7 @@ function getToken() {
 // Base fetch wrapper that includes the Authorization header
 export async function apiFetch(endpoint, options = {}) {
   const token = getToken();
-
+  console.log("Token is:", token);
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {

@@ -10,21 +10,20 @@ export default function CommunitiesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchCommunities = async (pageParam) => {
+  const fetchCommunities = async () => {
     setLoading(true);
     try {
-      const data = await apiFetch(`/communities?page=${pageParam}&limit=5`);
-      setCommunities(data.communities);
-      setTotalPages(data.totalPages);
+      const data = await apiFetch("/api/user-communities/user"); // No userId needed
+      setCommunities(data);
     } catch (error) {
-      console.error("Error fetching communities:", error);
+      console.error("Error fetching user communities:", error);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchCommunities(page);
-  }, [page]);
+    fetchCommunities();
+  }, []);
 
   const handleNextPage = () => {
     if (page < totalPages) {
