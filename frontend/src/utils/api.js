@@ -12,7 +12,6 @@ function getToken() {
 // Base fetch wrapper that includes the Authorization header
 export async function apiFetch(endpoint, options = {}) {
   const token = getToken();
-  console.log("Token is:", token);
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
