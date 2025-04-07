@@ -58,7 +58,7 @@ const getAllGoals = async (req, res, next) => {
 // @access  Private
 const getGoalsByUserId = async (req, res, next) => {
   try {
-    const goals = await Goal.find({ user_id: req.params.userId }).lean();
+    const goals = await Goal.find({ profile_id: req.params.userId }).lean();
 
     if (!goals.length) {
       return res.status(404).json({ message: "No goals found for this user" });
@@ -138,12 +138,12 @@ const updateGoalProgress = async (req, res, next) => {
       return res.status(403).json({ message: "Unauthorized to update progress" });
     }
 
-    goal.progress.push({
-      milestone,
-      achieved: progress_percentage >= 100,
-      progress_percentage: Math.min(progress_percentage, 100),
-      date_achieved: progress_percentage >= 100 ? new Date() : null
-    });
+    // goal.progress.push({
+    //   milestone,
+    //   achieved: progress_percentage >= 100,
+    //   progress_percentage: Math.min(progress_percentage, 100),
+    //   date_achieved: progress_percentage >= 100 ? new Date() : null
+    // });
 
     await goal.save();
     res.status(200).json({ message: "Progress updated successfully", goal });
