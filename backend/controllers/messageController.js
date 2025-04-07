@@ -16,12 +16,6 @@ const sendMessage = async (req, res, next) => {
     const { community_id, message, attachments } = req.body;
     const userId = req.user._id;
 
-    // Validate community
-    const community = await Community.findById(community_id);
-    if (!community) {
-      return res.status(404).json({ message: "Community not found" });
-    }
-
     // Create a new message
     const newMessage = await Message.create({
       sender_id: userId,
@@ -52,10 +46,6 @@ const getMessagesInCommunity = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .lean();
-
-    if (!messages.length) {
-      return res.status(404).json({ message: "No messages found in this community" });
-    }
 
     res.status(200).json({ page, limit, count: messages.length, messages });
   } catch (error) {
