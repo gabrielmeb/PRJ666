@@ -16,10 +16,10 @@ const createGoal = async (req, res, next) => {
     const userId = req.user._id;
 
     const newGoal = await Goal.create({
-      user_id: userId,
+      profile_id: userId,
       description,
       status: "Pending",
-      progress: []
+      progress: null
     });
 
     res.status(201).json({ message: "Goal created successfully", goal: newGoal });
