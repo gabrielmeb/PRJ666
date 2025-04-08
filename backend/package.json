@@ -32,6 +32,7 @@
         "passport": "^0.7.0",
         "passport-jwt": "^4.0.1",
         "react-chartjs-2": "^5.3.0",
+        "socket.io": "^4.8.1",
         "winston": "^3.13.1",
         "xss-clean": "^0.1.4"
     }

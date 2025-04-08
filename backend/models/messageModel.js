@@ -6,13 +6,13 @@ const MessageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true, // Optimized for querying messages by sender
+      index: true,
     },
     community_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Community",
       required: true,
-      index: true, // Optimized for querying messages by community
+      index: true, 
     },
     message: {
       type: String,
@@ -23,10 +23,9 @@ const MessageSchema = new mongoose.Schema(
     },
     attachments: {
       type: [String],
-      default: [], // Initialize as an empty array if no attachments are provided.
+      default: [], 
       validate: {
         validator: function (v) {
-          // Allow an empty array or validate each URL in the array.
           return v.every(url => /^(http|https):\/\/[^ "]+$/.test(url));
         },
         message: props => `${props.value} contains an invalid URL!`,

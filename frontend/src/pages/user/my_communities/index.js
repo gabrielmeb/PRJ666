@@ -40,7 +40,7 @@ export default function CommunitiesPage() {
   return (
     <Layout>
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Communities</h1>
+      <h1 className="text-2xl font-bold mb-4">My Communities</h1>
 
       {loading ? (
         <p>Loading...</p>

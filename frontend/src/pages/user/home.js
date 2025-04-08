@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
+import { apiFetch } from "@/utils/api"; 
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -9,8 +10,9 @@ const Home = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const router = useRouter();
-  
+
   useEffect(() => {
+    // Get token and userId from localStorage to check authentication.
     const token = localStorage.getItem("userToken");
     const userId = localStorage.getItem("userId");
     if (!token || !userId) {
@@ -18,63 +20,78 @@ const Home = () => {
       return;
     }
 
-    // Fetch User Profile
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user-profiles/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setUser(data))
-      .catch(err => console.error("Error fetching user profile:", err));
+    // Async function to fetch all user data.
+    async function fetchData() {
+      // Fetch User Profile
+      try {
+        const userProfile = await apiFetch(`/api/user-profiles/${userId}`);
+        setUser(userProfile);
+      } catch (error) {
+        console.error("Error fetching user profile:", error.message);
+      }
 
-    // Fetch Goals
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/goals/user/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setGoals(data))
-      .catch(err => console.error("Error fetching goals:", err));
+      // Fetch Goals
+      try {
+        const userGoals = await apiFetch(`/api/goals/user/${userId}`);
+        setGoals(userGoals);
+      } catch (error) {
+        console.error("Error fetching goals:", error.message);
+      }
 
-    // Fetch Progress
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/progress/user/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setProgress(data))
-      .catch(err => console.error("Error fetching progress:", err));
+      // Fetch Progress
+      try {
+        const userProgress = await apiFetch(`/api/progress/user/${userId}`);
+        setProgress(userProgress);
+      } catch (error) {
+        console.error("Error fetching progress:", error.message);
+      }
 
-    // Fetch AI Recommendations
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recommendations/user/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setRecommendations(data))
-      .catch(err => console.error("Error fetching recommendations:", err));
+      // Fetch AI Recommendations
+      try {
+        const userRecommendations = await apiFetch(`/api/recommendations/user/${userId}`);
+        setRecommendations(userRecommendations);
+      } catch (error) {
+        console.error("Error fetching recommendations:", error.message);
+      }
 
-    // Fetch Notifications
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setNotifications(data.notifications))
-      .catch(err => console.error("Error fetching notifications:", err));
-  }, []);
+      // Fetch Notifications
+      try {
+        const notifData = await apiFetch("/api/notifications");
+        setNotifications(notifData.notifications || []);
+      } catch (error) {
+        console.error("Error fetching notifications:", error.message);
+      }
+    }
+
+    fetchData();
+  }, [router]);
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-gray-800">Welcome, {user?.user_id?.first_name} 👋</h1>
+      <h1 className="text-3xl font-bold text-gray-800">
+        Welcome, {user?.user_id?.first_name} 👋
+      </h1>
       <p className="text-gray-500">Here&apos;s your progress and recommendations.</p>
 
       {/* Goal Progress */}
       <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold">Goal Progress</h2>
         <div className="mt-4 bg-gray-200 rounded-full h-4">
-          <div className="bg-purple-600 h-4 rounded-full" style={{ width: `${progress ? progress[0]?.progress_percentage || 0 : 0}%` }}></div>
+          <div
+            className="bg-purple-600 h-4 rounded-full"
+            style={{
+              width: `${progress ? progress[0]?.progress_percentage || 0 : 0}%`
+            }}
+          ></div>
         </div>
-        <p className="text-gray-600 mt-2">{progress ? progress[0]?.progress_percentage || 0 : 0}% completed</p>
+        <p className="text-gray-600 mt-2">
+          {progress ? progress[0]?.progress_percentage || 0 : 0}% completed
+        </p>
       </div>
 
       {/* Recommendations */}
-      {/* <div className="mt-6 grid grid-cols-3 gap-4">
+      {/* 
+      <div className="mt-6 grid grid-cols-3 gap-4">
         {recommendations.map((rec, index) => (
           <div key={index} className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold">{rec.type}</h3>
@@ -83,7 +100,8 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Notifications }
+      {/* Notifications */}
+      {/*
       <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold">Notifications</h2>
         <ul className="mt-2 text-gray-600">
@@ -91,7 +109,8 @@ const Home = () => {
             <li key={index}>{note.message}</li>
           ))}
         </ul>
-      </div> */}
+      </div>
+      */}
     </Layout>
   );
 };

@@ -7,37 +7,40 @@ const { validationResult } = require("express-validator");
 // @access  Private
 const sendMessage = async (req, res, next) => {
   try {
-    // Validate input fields
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { community_id, message, attachments } = req.body;
-    const userId = req.user._id;
+    const sender_id = req.user._id;
 
-    // Create a new message
-    const newMessage = await Message.create({
-      sender_id: userId,
-      community_id,
-      message,
-      attachments: attachments || []
+    // 1) Create message
+    const newMsg = await Message.create({ sender_id, community_id, message, attachments });
+
+    // 2) Push to Community.messages
+    await Community.findByIdAndUpdate(community_id, {
+      $push: { messages: newMsg._id }
     });
 
-    res.status(201).json({ message: "Message sent successfully", newMessage });
-  } catch (error) {
-    next(error);
+    // 3) Populate for response & real‑time
+    const populated = await newMsg
+      .populate("sender_id", "first_name last_name profile_image")
+      .execPopulate();
+
+    // 4) Emit to Socket.io room
+    const io = req.app.get("io");
+    io.to(community_id.toString()).emit("newMessage", populated);
+
+    res.status(201).json({ message: "Message sent", newMessage: populated });
+  } catch (err) {
+    next(err);
   }
 };
 
-// @desc    Get all messages in a community with pagination
-// @route   GET /api/messages/community/:communityId
-// @access  Private
 const getMessagesInCommunity = async (req, res, next) => {
   try {
     const { communityId } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const page = +req.query.page || 1;
+    const limit = +req.query.limit || 50;
     const skip = (page - 1) * limit;
 
     const messages = await Message.find({ community_id: communityId })
@@ -47,11 +50,9 @@ const getMessagesInCommunity = async (req, res, next) => {
       .limit(limit)
       .lean();
 
-  
-
-    res.status(200).json({ page, limit, count: messages.length, messages });
-  } catch (error) {
-    next(error);
+    res.json({ page, limit, count: messages.length, messages });
+  } catch (err) {
+    next(err);
   }
 };
 
