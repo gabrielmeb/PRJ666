@@ -92,7 +92,7 @@ export default function GoalsPage() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ status: "Pending", progress: null, description: editGoalDescription }),
+          body: JSON.stringify({ status: "Pending", progress: [], description: editGoalDescription }),
         }
       );
       if (res.ok) {

@@ -75,7 +75,7 @@ const getGoalsByUserId = async (req, res, next) => {
 // @access  Private
 const updateGoal = async (req, res, next) => {
   try {
-    const { status, progress } = req.body;
+    const { status, progress, description } = req.body;
     const goal = await Goal.findById(req.params.goalId);
 
     if (!goal) {
@@ -83,20 +83,25 @@ const updateGoal = async (req, res, next) => {
     }
 
     // Allow only the owner to update the goal
-    if (goal.user_id.toString() !== req.user._id.toString()) {
+    if (goal.profile_id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Unauthorized to update this goal" });
     }
 
-    if (status) goal.status = status;
+    // if (status) goal.status = status;
     
     // Append new progress if provided instead of overwriting
-    if (progress) {
-      goal.progress.push(progress);
+    // if (progress) {
+    //   goal.progress.push(progress);
+    // }
+
+    if(description){
+      goal.description = description
     }
 
     await goal.save();
     res.status(200).json({ message: "Goal updated successfully", goal });
   } catch (error) {
+    console.log("ABOSDHJKFLGSHG ABOBA ABOBA HUY")
     next(error);
   }
 };
@@ -113,11 +118,11 @@ const deleteGoal = async (req, res, next) => {
     }
 
     // Allow only the owner to delete the goal
-    if (goal.user_id.toString() !== req.user._id.toString()) {
+    if (goal.profile_id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Unauthorized to delete this goal" });
     }
 
-    await goal.remove();
+    await goal.deleteOne();
     res.status(200).json({ message: "Goal deleted successfully" });
   } catch (error) {
     next(error);
