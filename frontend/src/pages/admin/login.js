@@ -10,15 +10,6 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Check if admin is already logged in
-  useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-    if (token) {
-      router.push("/admin/dashboard");
-    }
-  }, [router]);
-
-  // Setup react-hook-form
   const {
     register,
     handleSubmit,
