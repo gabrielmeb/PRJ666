@@ -108,12 +108,14 @@ const deleteFeedback = async (req, res, next) => {
       return res.status(404).json({ message: "Feedback not found" });
     }
 
-    // Ensure only the owner or admin can delete feedback
-    if (feedback.user_id.toString() !== req.user._id.toString() && req.user.role !== "SuperAdmin") {
+    const isOwner = feedback.user_id.toString() === req.user._id.toString();
+    const isAdmin = ["Admin", "SuperAdmin"].includes(req.user.role);
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ message: "Unauthorized to delete this feedback" });
     }
 
-    await feedback.remove();
+    await feedback.deleteOne();
     res.status(200).json({ message: "Feedback deleted successfully" });
   } catch (error) {
     next(error);
