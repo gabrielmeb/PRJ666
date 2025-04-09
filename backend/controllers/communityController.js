@@ -90,9 +90,9 @@ const getAllCommunities = async (req, res, next) => {
 const getCommunityById = async (req, res, next) => {
   try {
     const community = await Community.findById(req.params.communityId).lean();
-    if (!community) {
-      return res.status(404).json({ message: "Community not found" });
-    }
+    // if (!community) {
+    //   return res.status(404).json({ message: "Community not found" });
+    // }
     res.status(200).json(community);
   } catch (error) {
     next(error);

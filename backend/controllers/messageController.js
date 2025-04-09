@@ -22,9 +22,10 @@ const sendMessage = async (req, res, next) => {
     });
 
     // 3) Populate for response & real‑time
-    const populated = await newMsg
-      .populate("sender_id", "first_name last_name profile_image")
-      .execPopulate();
+    const populated = await Message.findById(newMsg._id).populate(
+      "sender_id",
+      "first_name last_name profile_image"
+    );
 
     // 4) Emit to Socket.io room
     const io = req.app.get("io");

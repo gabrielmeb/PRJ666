@@ -17,7 +17,7 @@ export default function CommunityDetailPage() {
   const fetchCommunity = async () => {
     try {
       // GET /api/communities/:id
-      const data = await apiFetch(`/api/communities/${communityId}`);
+      const data = await apiFetch(`/api/communities/` + communityId);
       setCommunity(data);
     } catch (err) {
       console.error("Error fetching community:", err);
@@ -52,6 +52,7 @@ export default function CommunityDetailPage() {
     socketRef.current.on("newMessage", (msg) => {
       // Option 1: Put newest at the bottom:
       setMessages((prev) => [...prev, msg]);
+      
 
       // Option 2: If you prefer newest on top, do:
       // setMessages((prev) => [msg, ...prev]);
@@ -92,6 +93,7 @@ export default function CommunityDetailPage() {
       // because the Socket.io "newMessage" event
       // will do it in real-time. 
       setNewMessage("");
+      await fetchMessages();
     } catch (err) {
       console.error("Error sending message:", err);
     }
