@@ -50,18 +50,6 @@ export default function Layout({ children }) {
                 <span>Home</span>
               </Link>
               <Link
-                href="/user/profile"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/profile")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiUserLine size={20} />
-                <span>Profile</span>
-              </Link>
-              <Link
                 href="/user/goals"
                 className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
                   isActive("/user/goals")
