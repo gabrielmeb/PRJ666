@@ -128,15 +128,15 @@ export default function ProfilePage() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-6 text-gray-800">My Profile</h1>
+      <div className="max-w-3xl mx-auto p-6 bg-black text-white">
+        <h1 className="text-4xl font-bold mb-6">My Profile</h1>
 
-        {loading && <p className="text-gray-600">Loading...</p>}
+        {loading && <p className="text-gray-400">Loading...</p>}
         {errorMsg && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">{errorMsg}</div>
+          <div className="mb-4 p-4 bg-red-600 text-red-100 rounded">{errorMsg}</div>
         )}
         {successMsg && (
-          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">{successMsg}</div>
+          <div className="mb-4 p-4 bg-green-600 text-green-100 rounded">{successMsg}</div>
         )}
 
         <form onSubmit={handleUpdate} className="space-y-6">
@@ -151,42 +151,40 @@ export default function ProfilePage() {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
+                <div className="w-full h-full bg-gray-700 rounded-full flex items-center justify-center text-white">
                   No Image
                 </div>
               )}
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Change Profile Image
-              </label>
+              <label className="block text-sm font-medium mb-1">Change Profile Image</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-600 file:text-blue-100 hover:file:bg-blue-700"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <label className="block text-sm font-medium">First Name</label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                className="mt-1 block w-full border-gray-500 rounded-md shadow-sm bg-gray-800 text-white"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Last Name</label>
+              <label className="block text-sm font-medium">Last Name</label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                className="mt-1 block w-full border-gray-500 rounded-md shadow-sm bg-gray-800 text-white"
                 required
               />
             </div>
@@ -194,22 +192,22 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+              <label className="block text-sm font-medium">Date of Birth</label>
               <input
                 type="date"
                 value={dateOfBirth}
                 onChange={(e) => setDateOfBirth(e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                className="mt-1 block w-full border-gray-500 rounded-md shadow-sm bg-gray-800 text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Preferences</label>
+              <label className="block text-sm font-medium">Preferences</label>
               <input
                 type="text"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
                 placeholder="Comma-separated values"
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                className="mt-1 block w-full border-gray-500 rounded-md shadow-sm bg-gray-800 text-white"
               />
             </div>
           </div>
