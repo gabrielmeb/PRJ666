@@ -3,9 +3,6 @@ import Link from "next/link";
 import AdminLayout from "@/components/AdminLayout";
 
 export default function ManageUsers() {
-  // ----------------------
-  // STATE
-  // ----------------------
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [page, setPage] = useState(1);
@@ -18,18 +15,10 @@ export default function ManageUsers() {
   const [actionError, setActionError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // For storing the currently logged-in admin info and role
   const [currentAdmin, setCurrentAdmin] = useState(null);
-
-  // ----------------------
-  // SEARCH BAR STATE
-  // ----------------------
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false); // Flag to track search mode
+  const [isSearching, setIsSearching] = useState(false);
 
-  // ----------------------
-  // EFFECT: Load Admin Info from localStorage
-  // ----------------------
   useEffect(() => {
     try {
       const storedAdmin = localStorage.getItem("adminInfo");
@@ -41,17 +30,11 @@ export default function ManageUsers() {
     }
   }, []);
 
-  // ----------------------
-  // EFFECT: Fetch Users (only when NOT in search mode)
-  // ----------------------
   useEffect(() => {
-    if (isSearching) return; // skip normal fetch if user is in search mode
+    if (isSearching) return;
     fetchUsers(page, limit);
   }, [page, limit, isSearching, totalUsers]);
 
-  // ----------------------
-  // FETCH ALL USERS
-  // ----------------------
   const fetchUsers = async (pageNumber, pageLimit) => {
     setLoading(true);
     setError("");
@@ -77,11 +60,10 @@ export default function ManageUsers() {
         throw new Error(data.message || "Failed to fetch users.");
       }
 
-      // data should have { users, page, totalPages, ... }
       setUsers(data.users || []);
       if (data.page) setPage(data.page);
       if (data.totalPages) setTotalPages(data.totalPages);
-      if (data.totalCount) setTotalUsers(data.totalCount)
+      if (data.totalCount) setTotalUsers(data.totalCount);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -89,16 +71,12 @@ export default function ManageUsers() {
     }
   };
 
-  // ----------------------
-  // HANDLE SEARCH SUBMIT
-  // ----------------------
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
 
     if (!searchQuery.trim()) {
-      // If search box is empty, revert to normal listing
       setIsSearching(false);
-      setPage(1); // optionally reset to page 1
+      setPage(1);
       return;
     }
 
@@ -114,7 +92,6 @@ export default function ManageUsers() {
         throw new Error("Not authenticated. Please log in as an Admin.");
       }
 
-      // Search route: GET /api/users/search?q=searchTerm
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/search?q=${encodeURIComponent(searchQuery)}`,
         {
@@ -123,17 +100,14 @@ export default function ManageUsers() {
           },
         }
       );
-      console.log(response)
+
       const data = await response.json();
-      console.log(data)
       if (!response.ok) {
-        console.log("Response NOT OK")
         throw new Error(data.message || "Failed to search users.");
       }
 
-      // data should have { count, users }
       setUsers(data.users || []);
-      setTotalUsers(data.count)
+      setTotalUsers(data.count);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -141,18 +115,12 @@ export default function ManageUsers() {
     }
   };
 
-  // ----------------------
-  // CLEAR SEARCH
-  // ----------------------
   const handleClearSearch = () => {
     setSearchQuery("");
     setIsSearching(false);
-    setPage(1); // Possibly reset pagination
+    setPage(1);
   };
 
-  // ----------------------
-  // DELETE USER
-  // ----------------------
   const handleDeleteUser = async (userId) => {
     setActionError("");
     if (!confirm("Are you sure you want to remove this user?")) return;
@@ -163,7 +131,6 @@ export default function ManageUsers() {
         throw new Error("Not authenticated. Please log in as an Admin.");
       }
 
-      // DELETE /api/users/:id
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${userId}`,
         {
@@ -180,7 +147,6 @@ export default function ManageUsers() {
         throw new Error(data.message || "Failed to remove user.");
       }
 
-      // Remove from UI
       setUsers((prev) => prev.filter((user) => user._id !== userId));
       setTotalUsers((prevTotal) => Math.max(0, prevTotal - 1)); 
       setSuccessMessage("User removed successfully!");
@@ -191,139 +157,172 @@ export default function ManageUsers() {
     }
   };
 
-  // ----------------------
-  // RENDER
-  // ----------------------
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">Manage Users</h1>
-      <p className="text-gray-500 mb-6">
-        View all registered users. You can search and remove users if you have the proper role.
-      </p>
+      <div className="min-h-screen bg-black p-6">
+        <h1 className="text-3xl font-bold text-white mb-2">Manage Users</h1>
+        <p className="text-gray-400 mb-6">
+          View all registered users. You can search and remove users if you have the proper role.
+        </p>
 
-      {/* Error / Success Alerts */}
-      {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">
-          {error}
-        </div>
-      )}
-      {actionError && (
-        <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">
-          {actionError}
-        </div>
-      )}
-      {successMessage && (
-        <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4">
-          {successMessage}
-        </div>
-      )}
-
-      {/* SEARCH FORM */}
-      <form className="flex items-center gap-2 mb-4" onSubmit={handleSearchSubmit}>
-        <input
-          type="text"
-          className="border p-2 rounded w-64"
-          placeholder="Search by name..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded"
-        >
-          {searchLoading ? "Searching..." : "Search"}
-        </button>
-        {isSearching && (
-          <button
-            type="button"
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2 rounded"
-            onClick={handleClearSearch}
-          >
-            Clear
-          </button>
-        )}
-      </form>
-
-      {/* MAIN TABLE */}
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4">
-          {isSearching ? `Search Results (${totalUsers})` : `All Users (${totalUsers})`}
-        </h2>
-
-        {/* Loading Spinner */}
-        {loading && !isSearching && <p>Loading users...</p>}
-        {searchLoading && isSearching && <p>Searching users...</p>}
-
-        {/* USERS TABLE */}
-        {!loading && !searchLoading && users.length === 0 && (
-          <p>No users found.</p>
-        )}
-
-        {!loading && !searchLoading && users.length > 0 && (
-          <table className="w-full border">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">Email</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id} className="border-b">
-                  <td className="p-2 font-semibold underline">
-                  <Link href={`/admin/users/${user._id}`}>
-                    {user.first_name} {user.last_name}
-                  </Link>
-                  </td>
-                  <td className="p-2">{user.email}</td>
-                  <td className="p-2">
-                    {currentAdmin &&
-                      (currentAdmin.role === "SuperAdmin" ||
-                        currentAdmin.role === "Admin") && (
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    {(!currentAdmin ||
-                      (currentAdmin.role !== "SuperAdmin" &&
-                        currentAdmin.role !== "Admin")) && (
-                      <span className="text-gray-400">N/A</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {/* PAGINATION (only if not in search mode) */}
-        {!isSearching && !loading && users.length > 0 && (
-          <div className="mt-4 flex justify-around gap-2">
-            <button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page <= 1}
-              className="bg-gray-200 px-2 py-1 rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="self-center">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((prev) =>
-                prev < totalPages ? prev + 1 : prev
-              )}
-              disabled={page >= totalPages}
-              className="bg-gray-200 px-2 py-1 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+        {/* Error / Success Alerts */}
+        {error && (
+          <div className="bg-red-900 text-red-100 p-3 rounded-md mb-4 border border-red-700">
+            {error}
           </div>
         )}
+        {actionError && (
+          <div className="bg-red-900 text-red-100 p-3 rounded-md mb-4 border border-red-700">
+            {actionError}
+          </div>
+        )}
+        {successMessage && (
+          <div className="bg-green-900 text-green-100 p-3 rounded-md mb-4 border border-green-700">
+            {successMessage}
+          </div>
+        )}
+
+        {/* SEARCH FORM */}
+        <form className="flex flex-col sm:flex-row items-center gap-2 mb-6" onSubmit={handleSearchSubmit}>
+          <input
+            type="text"
+            className="bg-gray-800 border border-gray-700 text-white p-2 rounded flex-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              type="submit"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded w-full sm:w-auto"
+            >
+              {searchLoading ? "Searching..." : "Search"}
+            </button>
+            {isSearching && (
+              <button
+                type="button"
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded w-full sm:w-auto"
+                onClick={handleClearSearch}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* MAIN TABLE */}
+        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+          <h2 className="text-xl font-bold text-white mb-4">
+            {isSearching ? `Search Results (${totalUsers})` : `All Users (${totalUsers})`}
+          </h2>
+
+          {/* Loading Spinner */}
+          {(loading || searchLoading) && (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !searchLoading && users.length === 0 && (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-300">No users found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {searchQuery ? "Try a different search term" : "No users registered yet"}
+              </p>
+            </div>
+          )}
+
+          {/* USERS TABLE */}
+          {!loading && !searchLoading && users.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="p-3 text-left text-gray-400 font-medium">Name</th>
+                    <th className="p-3 text-left text-gray-400 font-medium">Email</th>
+                    <th className="p-3 text-left text-gray-400 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user._id} className="border-b border-gray-800 hover:bg-gray-800">
+                      <td className="p-3 font-medium text-white">
+                        <Link 
+                          href={`/admin/users/${user._id}`}
+                          className="hover:text-purple-400 hover:underline"
+                        >
+                          {user.first_name} {user.last_name}
+                        </Link>
+                      </td>
+                      <td className="p-3 text-gray-300">{user.email}</td>
+                      <td className="p-3">
+                        {currentAdmin &&
+                          (currentAdmin.role === "SuperAdmin" ||
+                            currentAdmin.role === "Admin") && (
+                            <button
+                              onClick={() => handleDeleteUser(user._id)}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        {(!currentAdmin ||
+                          (currentAdmin.role !== "SuperAdmin" &&
+                            currentAdmin.role !== "Admin")) && (
+                          <span className="text-gray-500">N/A</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* PAGINATION */}
+          {!isSearching && !loading && users.length > 0 && (
+            <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="text-sm text-gray-400">
+                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, totalUsers)} of {totalUsers} users
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page <= 1}
+                  className={`px-3 py-1 border border-gray-700 rounded text-sm ${page <= 1 ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-300">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((prev) =>
+                    prev < totalPages ? prev + 1 : prev
+                  )}
+                  disabled={page >= totalPages}
+                  className={`px-3 py-1 border border-gray-700 rounded text-sm ${page >= totalPages ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </AdminLayout>
   );
