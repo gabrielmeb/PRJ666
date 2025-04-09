@@ -76,16 +76,21 @@ const getAllContent = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    // Get paginated documents
     const content = await ContentLibrary.find()
       .skip(skip)
       .limit(limit)
       .lean();
 
-    res.status(200).json({ page, limit, count: content.length, content });
+    // Get the total number of documents
+    const total = await ContentLibrary.countDocuments();
+
+    res.status(200).json({ page, limit, total, content });
   } catch (error) {
     next(error);
   }
 };
+
 
 // @desc    Get content by category with pagination
 // @route   GET /api/content/category/:category

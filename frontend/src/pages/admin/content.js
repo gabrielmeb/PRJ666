@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import AdminLayout from "../../components/AdminLayout";
@@ -20,7 +21,7 @@ async function fetchWithAuth(url, options = {}) {
 
 function TruncatedText({ text, lines = 4 }) {
   const [expanded, setExpanded] = useState(false);
-  const collapsedHeight = `calc(1.5em * ${lines})`;
+  const collapsedHeight = `calc(1.7em * ${lines})`;
 
   return (
     <div>
@@ -41,6 +42,17 @@ function TruncatedText({ text, lines = 4 }) {
     </div>
   );
 }
+
+// Small StatCard Component
+const StatCard = ({ icon, label, value }) => (
+  <div className="bg-gray-900 p-4 border border-gray-800 rounded-lg text-gray-300">
+    <p className="text-sm mb-1">{label}</p>
+    <div className="flex items-center space-x-2">
+      <span className="text-xl">{icon}</span>
+      <span className="font-semibold text-white">{value}</span>
+    </div>
+  </div>
+);
 
 function getRandomCategoryImage(category) {
   if (category) {
@@ -77,7 +89,7 @@ export default function ContentLibrary() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 6,
+    limit: 9,
     total: 0
   });
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -129,36 +141,35 @@ export default function ContentLibrary() {
     setLoading(true);
     try {
       let items = [];
-      let count = 0;
+      let totalCount = 0;
 
       if (searchQuery.trim()) {
         const sr = await fetchWithAuth(
           `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content/search?q=${encodeURIComponent(searchQuery)}`
         );
         items = sr.results || [];
-        count = items.length;
+        totalCount = items.length;
         if (selectedCategory !== "All") {
           items = items.filter(i => i.category === selectedCategory);
-          count = items.length;
+          totalCount = items.length;
         }
       } else if (selectedCategory !== "All") {
         const cr = await fetchWithAuth(
           `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content/category/${selectedCategory}?limit=${pagination.limit}&page=${pagination.page}`
         );
         items = cr.content || [];
-        count = cr.count || 0;
+        totalCount = cr.count || 0;
       } else {
+        // Fetch all content with proper server-side pagination
         const ar = await fetchWithAuth(
           `${process.env.NEXT_PUBLIC_API_URL}/api/admin/content?limit=${pagination.limit}&page=${pagination.page}`
         );
         items = ar.content || [];
-        count = ar.count || 0;
+        totalCount = ar.total || 0;
       }
 
-      const start = (pagination.page - 1) * pagination.limit;
-      const end = start + pagination.limit;
-      setContentItems(items.slice(start, end));
-      setPagination(prev => ({ ...prev, total: count }));
+      setContentItems(items);
+      setPagination(prev => ({ ...prev, total: totalCount }));
     } catch (error) {
       handleError("Failed to load content", error);
     }
@@ -336,13 +347,13 @@ export default function ContentLibrary() {
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-blue-900 text-blue-300 mr-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-400">Total Content</p>
-                <p className="text-2xl font-semibold text-white">{stats.total}</p>
+                <p className="text-sm md:text-lg font-semibold text-gray-300">Total Content</p>
+                <p className="text-2xl md:text-3xl font-semibold text-white">{stats.total}</p>
               </div>
             </div>
           </div>
@@ -351,21 +362,21 @@ export default function ContentLibrary() {
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-green-900 text-green-300 mr-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-400">Recently Added</p>
+                <p className="text-sm md:text-lg font-semibold text-gray-300">Recently Added</p>
                 <div className="mt-1 space-y-1">
                   {stats.recentContent.length > 0 ? (
                     stats.recentContent.slice(0, 2).map(rc => (
-                      <p key={rc._id} className="text-sm text-gray-300 truncate">
+                      <p key={rc._id} className="text-sm text-white">
                         {rc.title}
                       </p>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500">No recent content</p>
+                    <p className="text-sm text-gray-400">No recent content</p>
                   )}
                 </div>
               </div>
@@ -376,16 +387,16 @@ export default function ContentLibrary() {
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-purple-900 text-purple-300 mr-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-400">Top Categories</p>
+                <p className="text-sm md:text-lg font-semibold text-gray-300">Top Category</p>
                 <div className="mt-1 space-y-1">
                   {stats.topCategories.length > 0 ? (
-                    stats.topCategories.slice(0, 2).map(cat => (
-                      <p key={cat._id} className="text-sm text-gray-300">
+                    stats.topCategories.slice(0, 1).map(cat => (
+                      <p key={cat._id} className="text-sm text-white">
                         {cat._id} ({cat.count})
                       </p>
                     ))
@@ -533,7 +544,7 @@ export default function ContentLibrary() {
                             {item.title}
                           </a>
                         </h3>
-                        <span className="inline-block bg-gray-800 text-purple-400 text-xs px-2 py-1 rounded-full">
+                        <span className="inline-block bg-gray-800 text-purple-400 text-xs px-2 py-1 rounded-lg">
                           {item.category}
                         </span>
                       </div>
@@ -618,9 +629,9 @@ export default function ContentLibrary() {
                 </span>
                 <button
                   onClick={nextPage}
-                  disabled={contentItems.length < pagination.limit}
+                  disabled={pagination.page * pagination.limit >= pagination.total}
                   className={`px-3 py-1 border border-gray-700 rounded-md text-sm font-medium ${
-                    contentItems.length < pagination.limit
+                    pagination.page * pagination.limit >= pagination.total
                       ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                   }`}
