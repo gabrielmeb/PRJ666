@@ -246,8 +246,9 @@ const getUsersJoinedLastMonth = async (req, res, next) => {
 // @access  Private
 const updateUser = async (req, res, next) => {
   try {
-    const { first_name, last_name, email, date_of_birth, preferences } = req.body;
+    let { first_name, last_name, email, date_of_birth, preferences } = req.body;
 
+    // If preferences is a JSON string, parse it
     if (typeof preferences === "string") {
       preferences = JSON.parse(preferences);
     }
@@ -255,14 +256,14 @@ const updateUser = async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // 🔹 Update text fields if provided
+    // Update text fields if provided
     user.first_name = first_name || user.first_name;
     user.last_name = last_name || user.last_name;
     user.email = email || user.email;
     user.date_of_birth = date_of_birth || user.date_of_birth;
     user.preferences = preferences || user.preferences;
 
-    // 🔹 If an image is uploaded, update Cloudinary URL
+    // If an image is uploaded, update Cloudinary URL
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, { folder: "profile_images" });
       user.profile_image = result.secure_url; // Store new Cloudinary URL

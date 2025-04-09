@@ -1,358 +1,236 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { apiFetch } from "@/utils/api";
+import Image from "next/image";
+import { useRouter } from "next/router";
 
-export default function Profile() {
-  // Basic user fields
-  const [userId, setUserId] = useState("");
-  const [token, setToken] = useState("");
-
+export default function ProfilePage() {
+  const router = useRouter();
+  // Form state variables
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
-  const [preferences, setPreferences] = useState([]);
-  const [profileImage, setProfileImage] = useState(null); // local File object
-  const [previewImage, setPreviewImage] = useState("");
+  const [preferences, setPreferences] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const [newProfileImage, setNewProfileImage] = useState(null); // File object
 
-  // Extended profile fields
-  const [strengths, setStrengths] = useState([]);
-  const [areasForGrowth, setAreasForGrowth] = useState([]);
-
+  // Message states
   const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // 1) On mount, read localStorage for token + userId
+  const [token, setToken] = useState("");
+  const [userId, setUserId] = useState("");
+
+  // On mount, get token and userId from localStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem("userToken");
-    const storedUserId = localStorage.getItem("userId");
-    if (storedToken && storedUserId) {
-      setToken(storedToken);
-      setUserId(storedUserId);
-    } else {
-      console.warn("No token or userId found in localStorage. Redirect or prompt login!");
-      router.push("/login");
+    const t = localStorage.getItem("userToken");
+    const u = localStorage.getItem("userId");
+    if (t && u) {
+      setToken(t);
+      setUserId(u);
     }
   }, []);
 
-  // 2) Once we have token + userId, fetch the user + profile data
+  // Fetch current user info using GET /api/users/:id
   useEffect(() => {
-    if (!token || !userId) return; // Wait until we have them
-
-    const fetchUserData = async () => {
+    if (!token || !userId) return;
+    const fetchUser = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-
-        // -- a) Fetch basic user info --
-        const userData = await apiFetch(`/api/users/${userId}`, {
-          method: "GET",
-        });
-
-        setFirstName(userData.first_name || "");
-        setLastName(userData.last_name || "");
-        setEmail(userData.email || "");
-        if (userData.date_of_birth) {
-          // e.g. "2024-01-01T00:00:00.000Z" => "2024-01-01"
-          setDateOfBirth(userData.date_of_birth.slice(0, 10));
+        const data = await apiFetch(`/api/users/${userId}`, { method: "GET" });
+        // Populate form state. Format date to YYYY-MM-DD if available.
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
+        setDateOfBirth(data.date_of_birth ? data.date_of_birth.split("T")[0] : "");
+        if (data.preferences && Array.isArray(data.preferences)) {
+          setPreferences(data.preferences.join(", "));
+        } else {
+          setPreferences("");
         }
-        if (userData.profile_image) {
-          setPreviewImage(userData.profile_image);
-        }
-        if (Array.isArray(userData.preferences)) {
-          setPreferences(userData.preferences);
-        }
-
-        // -- b) Fetch extended profile info --
-        try {
-          const profileData = await apiFetch(`api/user-profiles/${userId}`, {
-            method: "GET",
-          });
-          if (profileData.strengths) setStrengths(profileData.strengths);
-          if (profileData.areas_for_growth) {
-            setAreasForGrowth(profileData.areas_for_growth);
-          }
-        } catch (error) {
-          if (error.message.includes("404")) {
-            console.log("No extended profile found for this user.");
-          } else {
-            console.error("Failed profile fetch:", error.message);
-          }
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch user/profile data:", error);
-        setLoading(false);
+        setProfileImage(data.profile_image || "");
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+        setErrorMsg("Failed to load your profile.");
       }
+      setLoading(false);
     };
-
-    fetchUserData();
+    fetchUser();
   }, [token, userId]);
 
-  // 3) Handle file selection
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfileImage(file);
-      setPreviewImage(URL.createObjectURL(file));
+  // Handle file selection for profile image.
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      // Set the new profile image file for FormData upload
+      setNewProfileImage(e.target.files[0]);
+      // Update the immediate preview by creating a temporary URL for the selected file
+      setProfileImage(URL.createObjectURL(e.target.files[0]));
     }
   };
 
-  // 4) Save basic user info (including file upload via FormData)
-  const handleSaveUser = async (e) => {
+  // Update user info (personal info only)
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!token || !userId) {
-      alert("No auth token or userId found!");
-      return;
-    }
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
     try {
-      setLoading(true);
-
-      // Build FormData for the file + text fields
+      // Use FormData to support file uploads.
       const formData = new FormData();
       formData.append("first_name", firstName);
       formData.append("last_name", lastName);
-      formData.append("email", email);
       formData.append("date_of_birth", dateOfBirth);
-      formData.append("preferences", JSON.stringify(preferences));
-      // "profile_image" must match your backend configuration
-      if (profileImage) {
-        formData.append("profile_image", profileImage);
+      // Convert comma-separated preferences into an array string
+      const prefsArray = preferences.split(",").map((p) => p.trim()).filter(Boolean);
+      formData.append("preferences", JSON.stringify(prefsArray));
+      if (newProfileImage) {
+        // Append the file with the key "profile_image" (must match in your upload middleware)
+        formData.append("profile_image", newProfileImage);
       }
 
-      await apiFetch(`/api/users/${userId}`, {
+      // Send request to update profile: this route uses upload.single("profile_image")
+      const res = await apiFetch(`/api/users/${userId}`, {
         method: "PUT",
         body: formData,
       });
-
-      alert("Basic user info updated!");
-      setLoading(false);
-    } catch (error) {
-      console.error("Error saving user info:", error);
-      setLoading(false);
+      setSuccessMsg("Profile updated successfully.");
+      // Update profile image from response (if updated)
+      if (res.user && res.user.profile_image) {
+        setProfileImage(res.user.profile_image);
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      setErrorMsg("Failed to update your profile. Please try again.");
     }
+    setLoading(false);
   };
 
-  // 5) Save extended profile info (JSON body, no file)
-  const handleSaveProfile = async (e) => {
-    e.preventDefault();
-    if (!token || !userId) {
-      alert("No auth token or userId found!");
-      return;
-    }
+  // Delete profile with a confirmation dialog.
+  const handleDeleteProfile = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your profile? This action cannot be undone."
+    );
+    if (!confirmed) return;
+    setLoading(true);
+    setErrorMsg("");
     try {
-      setLoading(true);
-
-      const body = {
-        strengths,
-        areas_for_growth: areasForGrowth,
-      };
-
-      await apiFetch(`/api/user-profiles/${userId}`, {
-        method: "PUT",
-        body: JSON.stringify(body),
-      });
-
-      alert("Extended profile updated!");
-      setLoading(false);
-    } catch (error) {
-      console.error("Error saving extended profile:", error);
-      setLoading(false);
+      await apiFetch(`/api/users/${userId}`, { method: "DELETE" });
+      // Clear local storage and redirect the user (e.g., home or login).
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userId");
+      router.push("/");
+    } catch (err) {
+      console.error("Error deleting profile:", err);
+      setErrorMsg("Failed to delete your profile. Please try again.");
     }
+    setLoading(false);
   };
-
-  // Example for adding a new strength
-  const handleAddStrength = () => {
-    setStrengths([...strengths, { category: "", score: 5 }]);
-  };
-  const handleStrengthChange = (index, field, value) => {
-    const updated = [...strengths];
-    updated[index][field] = value;
-    setStrengths(updated);
-  };
-
-  // Example for adding a new area for growth
-  const handleAddGrowthArea = () => {
-    setAreasForGrowth([...areasForGrowth, { category: "", priority: 3 }]);
-  };
-  const handleGrowthChange = (index, field, value) => {
-    const updated = [...areasForGrowth];
-    updated[index][field] = value;
-    setAreasForGrowth(updated);
-  };
-
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Manage Your Profile</h1>
+      <div className="max-w-3xl mx-auto p-6">
+        <h1 className="text-4xl font-bold mb-6 text-gray-800">My Profile</h1>
 
-        {/* ============ BASIC USER FIELDS FORM ============= */}
-        <form onSubmit={handleSaveUser} className="space-y-4 mb-8">
-          <div>
-            <label className="block font-semibold mb-1">First Name</label>
-            <input
-              type="text"
-              className="border rounded w-full p-2"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-            />
-          </div>
+        {loading && <p className="text-gray-600">Loading...</p>}
+        {errorMsg && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">{errorMsg}</div>
+        )}
+        {successMsg && (
+          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">{successMsg}</div>
+        )}
 
-          <div>
-            <label className="block font-semibold mb-1">Last Name</label>
-            <input
-              type="text"
-              className="border rounded w-full p-2"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Email</label>
-            <input
-              type="email"
-              className="border rounded w-full p-2"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Date of Birth</label>
-            <input
-              type="date"
-              className="border rounded w-full p-2"
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">
-              Preferences (comma-separated)
-            </label>
-            <input
-              type="text"
-              className="border rounded w-full p-2"
-              placeholder="e.g. reading, coding"
-              value={preferences.join(", ")}
-              onChange={(e) =>
-                setPreferences(e.target.value.split(",").map((p) => p.trim()))
-              }
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Profile Image</label>
-            <input type="file" onChange={handleImageChange} />
-            {previewImage && (
-              <div className="mt-2">
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="w-24 h-24 object-cover rounded-full"
+        <form onSubmit={handleUpdate} className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-24 h-24 relative">
+              {profileImage ? (
+                <Image
+                  src={profileImage}
+                  alt="Profile Image"
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-full"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
+                  No Image
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Change Profile Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
           </div>
 
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Save Basic Info
-          </button>
-        </form>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                required
+              />
+            </div>
+          </div>
 
-        {/* ============ EXTENDED PROFILE FORM ============= */}
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <h2 className="text-xl font-semibold">Extended Profile</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Preferences</label>
+              <input
+                type="text"
+                value={preferences}
+                onChange={(e) => setPreferences(e.target.value)}
+                placeholder="Comma-separated values"
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              />
+            </div>
+          </div>
 
-          {/* Strengths */}
-          <div>
-            <label className="block font-semibold mb-2">Strengths</label>
-            {strengths.map((item, idx) => (
-              <div key={idx} className="flex items-center space-x-2 mb-2">
-                <input
-                  type="text"
-                  className="border rounded p-2"
-                  placeholder="Category"
-                  value={item.category}
-                  onChange={(e) =>
-                    handleStrengthChange(idx, "category", e.target.value)
-                  }
-                />
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  className="border rounded p-2 w-20"
-                  placeholder="Score"
-                  value={item.score}
-                  onChange={(e) =>
-                    handleStrengthChange(idx, "score", e.target.value)
-                  }
-                />
-              </div>
-            ))}
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded"
+              disabled={loading}
+            >
+              Update Profile
+            </button>
             <button
               type="button"
-              onClick={handleAddStrength}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+              onClick={handleDeleteProfile}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded"
+              disabled={loading}
             >
-              Add Strength
+              Delete Profile
             </button>
           </div>
-
-          {/* Areas for Growth */}
-          <div>
-            <label className="block font-semibold mb-2">Areas for Growth</label>
-            {areasForGrowth.map((item, idx) => (
-              <div key={idx} className="flex items-center space-x-2 mb-2">
-                <input
-                  type="text"
-                  className="border rounded p-2"
-                  placeholder="Category"
-                  value={item.category}
-                  onChange={(e) =>
-                    handleGrowthChange(idx, "category", e.target.value)
-                  }
-                />
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  className="border rounded p-2 w-20"
-                  placeholder="Priority"
-                  value={item.priority}
-                  onChange={(e) =>
-                    handleGrowthChange(idx, "priority", e.target.value)
-                  }
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={handleAddGrowthArea}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
-            >
-              Add Growth Area
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Save Extended Profile
-          </button>
         </form>
       </div>
     </Layout>

@@ -28,12 +28,29 @@ router.put(
     body("first_name").optional().notEmpty().withMessage("First name cannot be empty"),
     body("last_name").optional().notEmpty().withMessage("Last name cannot be empty"),
     body("date_of_birth").optional().isISO8601().withMessage("Invalid date format"),
-    body("preferences").optional().isArray().withMessage("Preferences must be an array")
+    body("preferences")  .optional()  .custom((value) => {
+    // If value is a string, try to parse it as JSON and check it's an array.
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (!Array.isArray(parsed)) {
+          throw new Error("Preferences must be an array");
+        }
+      } catch (error) {
+        throw new Error("Preferences must be a valid JSON array");
+      }
+    } else if (!Array.isArray(value)) {
+      // If it's not a string, it must be an array.
+      throw new Error("Preferences must be an array");
+    }
+    return true;
+  })
+
   ]),
   updateUser
 );
 
 // Delete user (SuperAdmin can delete any user, users can delete themselves)
-router.delete("/:id", protect, authorize("SuperAdmin", "User"), deleteUser);
+router.delete("/:id", protect, deleteUser);
 
 module.exports = router;

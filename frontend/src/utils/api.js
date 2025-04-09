@@ -15,15 +15,22 @@ function createAbortController(timeoutMs = 10000) {
   return { controller, timeoutId };
 }
 
-
 // Base fetch wrapper that includes the Authorization header
 export async function apiFetch(endpoint, options = {}) {
-  // Get JWT token (if available) and prepare the default headers.
   const token = getToken();
-  const defaultHeaders = {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` })
-  };
+
+  // Check if the request body is a FormData instance.
+  const isFormData = options.body instanceof FormData;
+
+  // Set default headers conditionally based on whether we're sending FormData.
+  const defaultHeaders = isFormData
+    ? {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    : {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` })
+      };
 
   // Destructure timeout from options, the rest go to fetch.
   const { timeout = 10000, ...fetchOptions } = options;
@@ -43,7 +50,6 @@ export async function apiFetch(endpoint, options = {}) {
     const response = await fetch(`${API_URL}${endpoint}`, config);
     clearTimeout(timeoutId);
 
-    // If the response is not "ok", try to extract a meaningful error message.
     if (!response.ok) {
       let errorMessage = `HTTP error ${response.status}`;
       try {
@@ -55,11 +61,9 @@ export async function apiFetch(endpoint, options = {}) {
       throw new Error(errorMessage);
     }
 
-    // Attempt to parse the response (handles no-content responses gracefully)
     const responseText = await response.text();
     return responseText ? JSON.parse(responseText) : {};
   } catch (error) {
-    // Differentiate between timeout errors and other types.
     if (error.name === "AbortError") {
       throw new Error("Request timed out");
     }
