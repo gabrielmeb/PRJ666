@@ -1,4 +1,3 @@
-// feedback.js
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { apiFetch } from "@/utils/api";
@@ -104,16 +103,16 @@ export default function FeedbackPage() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">Feedback</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-white">Feedback</h1>
 
         {/* Form to submit new feedback */}
-        <div className="bg-white rounded shadow p-4 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Leave New Feedback</h2>
+        <div className="bg-zinc-800 rounded shadow p-4 mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">Leave New Feedback</h2>
           <form onSubmit={handleSubmitFeedback} className="space-y-4">
             <div>
-              <label className="block font-semibold mb-1">Feedback</label>
+              <label className="block font-semibold mb-1 text-gray-200">Feedback</label>
               <textarea
-                className="border border-gray-300 rounded w-full p-2 focus:outline-none focus:border-blue-500"
+                className="border border-gray-600 rounded w-full p-2 focus:outline-none focus:border-blue-500 bg-gray-700 text-white"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Share your experience..."
@@ -124,21 +123,20 @@ export default function FeedbackPage() {
             </div>
 
             <div>
-            <label className="block font-semibold mb-1">Rating (1–5)</label>
-            <input
-              type="range"
-              min="1"
-              max="5"
-              step="1"
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-              className="w-full max-w-sm"
-            />
-            <p className="text-start text-sm mt-1">
-              Selected rating: <span className="font-bold">{rating}</span>
-            </p>
-          </div>
-
+              <label className="block font-semibold mb-1 text-gray-200">Rating (1–5)</label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                className="w-full max-w-sm bg-gray-700"
+              />
+              <p className="text-start text-sm mt-1 text-gray-400">
+                Selected rating: <span className="font-bold">{rating}</span>
+              </p>
+            </div>
 
             <button
               type="submit"
@@ -150,9 +148,9 @@ export default function FeedbackPage() {
         </div>
 
         {/* Display user’s existing feedback */}
-        <div className="bg-white rounded shadow p-4">
-          <h2 className="text-xl font-semibold mb-4">Your Feedback</h2>
-          {loading && <p>Loading your feedback...</p>}
+        <div className="bg-zinc-800 rounded shadow p-4">
+          <h2 className="text-xl font-semibold mb-4 text-white">Your Feedback</h2>
+          {loading && <p className="text-gray-400">Loading your feedback...</p>}
 
           {!loading && feedbacks.length === 0 && (
             <p className="text-gray-500">No feedback yet.</p>
@@ -160,15 +158,15 @@ export default function FeedbackPage() {
 
           <ul className="space-y-4">
             {feedbacks.map((fb) => (
-              <li key={fb._id} className="border border-gray-200 p-4 rounded">
+              <li key={fb._id} className="border border-gray-700 p-4 rounded">
                 {editId === fb._id ? (
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-sm font-medium mb-1">
+                      <label className="block text-sm font-medium mb-1 text-gray-200">
                         Edit Content
                       </label>
                       <textarea
-                        className="border border-gray-300 rounded w-full p-2 focus:outline-none focus:border-blue-500"
+                        className="border border-gray-600 rounded w-full p-2 focus:outline-none focus:border-blue-500 bg-gray-700 text-white"
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         minLength={10}
@@ -176,11 +174,11 @@ export default function FeedbackPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">
+                      <label className="block text-sm font-medium mb-1 text-gray-200">
                         Rating (1–5)
                       </label>
                       <select
-                        className="border border-gray-300 rounded p-2 w-20 focus:outline-none focus:border-blue-500"
+                        className="border border-gray-600 rounded p-2 w-20 focus:outline-none focus:border-blue-500 bg-gray-700 text-white"
                         value={editRating}
                         onChange={(e) => setEditRating(e.target.value)}
                       >
@@ -198,7 +196,7 @@ export default function FeedbackPage() {
                     </button>
                     <button
                       onClick={() => setEditId(null)}
-                      className="ml-2 bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400"
+                      className="ml-2 bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
                     >
                       Cancel
                     </button>
@@ -206,8 +204,8 @@ export default function FeedbackPage() {
                 ) : (
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div className="mb-2 md:mb-0">
-                      <p className="text-base text-gray-700">{fb.content}</p>
-                      <p className="text-sm text-gray-500">Rating: {fb.rating}</p>
+                      <p className="text-base text-gray-300">{fb.content}</p>
+                      <p className="text-sm text-gray-400">Rating: {fb.rating}</p>
                     </div>
                     <div className="flex space-x-2">
                       <button

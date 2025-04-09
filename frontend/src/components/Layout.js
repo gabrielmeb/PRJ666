@@ -3,137 +3,83 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { RiHome3Line, RiUserLine,RiLineChartLine, RiFeedbackLine, RiUserCommunityFill, RiImageAiLine, RiAdminLine } from "react-icons/ri";
+import {
+  RiHome3Line,
+  RiUserLine,
+  RiLineChartLine,
+  RiFeedbackLine,
+  RiUserCommunityFill,
+  RiImageAiLine,
+  RiAdminLine,
+} from "react-icons/ri";
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const router = useRouter();
 
-  // Function to check if the link is active
   const isActive = (path) => router.pathname === path;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-black text-white">
       {/* Top Navbar */}
       <Navbar />
 
-      {/* Main container (Sidebar + Page Content) */}
+      {/* Main container */}
       <div className="flex-1 container mx-auto px-4 py-6">
-        {/* Use flex to place sidebar and content side by side in desktop */}
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Toggle button: only visible on mobile */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Mobile Sidebar Toggle */}
           <button
-            className="md:hidden bg-purple-600 text-white px-4 py-2 rounded"
+            className="md:hidden bg-purple-600 text-white px-4 py-2 rounded-lg shadow"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             Menu
           </button>
 
-          {/* Sidebar (non-fixed, no logo) */}
+          {/* Sidebar */}
           <aside
             className={`${
               sidebarOpen ? "block" : "hidden"
-            } md:block w-full md:w-64 bg-white shadow-md p-4`}
+            } md:block w-full md:w-64 bg-zinc-900 rounded-xl shadow-md p-5 transition`}
           >
-            <nav className="flex flex-col space-y-2">
-              <Link
-                href="/user/home"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/home")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiHome3Line size={20} />
-                <span>Home</span>
-              </Link>
-              <Link
-                href="/user/goals"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/goals")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiLineChartLine size={20} />
-                <span>Goals &amp; Progress</span>
-              </Link>
-              
-              <Link
-                href="/user/my_communities"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/my_communities")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiUserCommunityFill size={20} />
-                <span>My Community</span>
-              </Link>
-              <Link
-                href="/user/community"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/community")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiUserCommunityFill size={20} />
-                <span>Explore Community</span>
-              </Link>
-              <Link
-                href="/user/library"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/library")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiImageAiLine size={20} />
-                <span>Content Library</span>
-              </Link>
-              <Link
-                href="/user/feedback"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/user/feedback")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiFeedbackLine size={20} />
-                <span>Feedback</span>
-              </Link>
-              <Link
-                href="/user/admin"
-                className={`flex items-center space-x-2 py-2 px-4 rounded transition ${
-                  isActive("/admin/login")
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-700 hover:bg-purple-100"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <RiAdminLine size={20} />
-                <span>Admin</span>
-              </Link>
+            <nav className="flex flex-col gap-2">
+              <SidebarLink href="/user/home" label="Home" icon={<RiHome3Line />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
+              <SidebarLink href="/user/goals" label="Goals & Progress" icon={<RiLineChartLine />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
+              <SidebarLink href="/user/my_communities" label="My Community" icon={<RiUserCommunityFill />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
+              <SidebarLink href="/user/community" label="Explore Community" icon={<RiUserCommunityFill />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
+              <SidebarLink href="/user/library" label="Content Library" icon={<RiImageAiLine />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
+              <SidebarLink href="/user/feedback" label="Feedback" icon={<RiFeedbackLine />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
+              <SidebarLink href="/user/admin" label="Admin" icon={<RiAdminLine />} isActive={isActive} setSidebarOpen={setSidebarOpen} />
             </nav>
           </aside>
 
-          {/* Main Content Section */}
-          <section className="flex-1 bg-white rounded shadow p-4">
+          {/* Main Content */}
+          <section className="flex-1 bg-zinc-950 rounded-xl shadow-md p-6 text-white">
             {children}
           </section>
         </div>
       </div>
 
-      {/* Bottom Footer */}
+      {/* Footer */}
       <Footer />
     </div>
+  );
+}
+
+// SidebarLink Component
+function SidebarLink({ href, label, icon, isActive, setSidebarOpen }) {
+  const active = isActive(href);
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-4 py-2 rounded-lg transition font-medium ${
+        active
+          ? "bg-purple-600 text-white"
+          : "text-gray-300 hover:bg-zinc-800 hover:text-white"
+      }`}
+      onClick={() => setSidebarOpen(false)}
+    >
+      {icon}
+      <span>{label}</span>
+    </Link>
   );
 }

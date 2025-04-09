@@ -1,9 +1,9 @@
-// UI-Only Updated CommunityDetailPage
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import { apiFetch, API_URL } from "@/utils/api";
 import Layout from "@/components/Layout";
+import { Loader2, Send } from "lucide-react";
 
 export default function CommunityDetailPage() {
   const router = useRouter();
@@ -96,84 +96,87 @@ export default function CommunityDetailPage() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/* Community Info */}
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+        {/* Community Header */}
         {loadingCommunity ? (
-          <h1 className="text-3xl font-semibold text-gray-800">Loading Community...</h1>
+          <div className="flex items-center gap-2 text-gray-300 text-xl font-medium">
+            <Loader2 className="animate-spin" />
+            Loading community...
+          </div>
         ) : communityError ? (
-          <div className="p-4 bg-red-100 border border-red-300 text-red-700 rounded-md">
+          <div className="p-4 bg-red-800 text-red-200 border border-red-600 rounded-lg">
             {communityError}
           </div>
         ) : community ? (
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold text-gray-900">{community.name}</h1>
-            <p className="text-gray-600">{community.description}</p>
-            {community.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {community.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          <section className="space-y-2">
+            <h1 className="text-4xl font-extrabold text-white">{community.name}</h1>
+            <p className="text-lg text-gray-400">{community.description}</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {community.tags?.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="bg-blue-800 text-blue-100 text-sm font-semibold px-3 py-1 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </section>
         ) : (
-          <h1 className="text-3xl font-semibold text-gray-800">Community Not Found</h1>
+          <p className="text-2xl text-gray-300">Community not found.</p>
         )}
 
-        {/* Messages Section */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-md h-[28rem] overflow-y-auto p-5">
+        {/* Messages */}
+        <section className="bg-zinc-800 border border-gray-700 rounded-2xl shadow-sm h-[30rem] overflow-y-auto p-6">
           {loadingMessages ? (
-            <p className="text-gray-600">Loading messages...</p>
+            <div className="flex items-center gap-2 text-gray-400">
+              <Loader2 className="animate-spin" />
+              Loading messages...
+            </div>
           ) : messagesError ? (
-            <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-md">
+            <div className="p-3 bg-red-800 border border-red-600 text-red-200 rounded-lg">
               {messagesError}
             </div>
           ) : messages.length === 0 ? (
-            <p className="text-gray-500 italic">
-              No messages yet. Start the conversation!
-            </p>
+            <p className="text-gray-500 italic">No messages yet. Be the first to say something!</p>
           ) : (
             messages.map((msg) => (
-              <div key={msg._id} className="mb-6 pb-2 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-semibold text-gray-800">
+              <div key={msg._id} className="mb-6">
+                <div className="flex justify-between items-center mb-1">
+                  <p className="text-base font-semibold text-white">
                     {msg.sender_id?.first_name || "Unknown"} {msg.sender_id?.last_name || ""}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400">
                     {new Date(msg.createdAt).toLocaleString()}
-                  </p>
+                  </span>
                 </div>
-                <p className="text-gray-700">{msg.message}</p>
+                <p className="text-gray-300 leading-relaxed">{msg.message}</p>
               </div>
             ))
           )}
-        </div>
+        </section>
 
-        {/* Error message when sending a message */}
+        {/* Error on Send */}
         {sendError && (
-          <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-md">
+          <div className="p-3 bg-red-800 border border-red-600 text-red-200 rounded-lg">
             {sendError}
           </div>
         )}
 
-        {/* Message Input Form */}
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+        {/* Message Input */}
+        <form onSubmit={handleSendMessage} className="flex gap-3">
           <input
             type="text"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type your message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1 px-4 py-3 border border-gray-600 rounded-xl shadow-sm bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
           <button
             type="submit"
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 shadow"
+            className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow"
           >
+            <Send size={18} />
             Send
           </button>
         </form>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import { apiFetch } from "@/utils/api";
 import Image from "next/image";
+import { RiFileTextLine } from "react-icons/ri";
 
 // Helper to get an image URL based on the category.
 function getRandomCategoryImage(category) {
@@ -23,14 +24,13 @@ function ContentCard({ item }) {
   const [expanded, setExpanded] = useState(false);
   const toggleExpanded = () => setExpanded(!expanded);
 
-  // If description > 100 characters and not expanded, show partial text.
   const displayDescription =
     item.description.length > 100 && !expanded
       ? item.description.slice(0, 100) + "..."
       : item.description;
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden transition duration-200 hover:shadow-lg flex flex-col">
+    <div className="bg-zinc-800 rounded-xl shadow-lg overflow-hidden transition duration-200 hover:shadow-xl flex flex-col">
       {/* Image Section */}
       <div className="relative w-full h-48">
         <Image
@@ -38,7 +38,7 @@ function ContentCard({ item }) {
           alt={item.title}
           layout="fill"
           objectFit="cover"
-          className="object-cover"
+          className="object-cover rounded-t-xl"
         />
       </div>
 
@@ -46,21 +46,18 @@ function ContentCard({ item }) {
       <div className="p-6 flex flex-col flex-grow">
         {/* Clickable Title */}
         {item.url ? (
-          <Link href={item.url}
-            className="text-xl font-semibold text-blue-600 mb-3 line-clamp-2 hover:underline">
-              {item.title}
-
+          <Link
+            href={item.url}
+            className="text-xl font-semibold text-blue-600 mb-3 hover:underline line-clamp-2"
+          >
+            {item.title}
           </Link>
         ) : (
-          <h2 className="text-xl font-semibold text-blue-600 mb-3 line-clamp-2">
-            {item.title}
-          </h2>
+          <h2 className="text-xl font-semibold text-blue-600 mb-3 line-clamp-2">{item.title}</h2>
         )}
 
         {/* Description */}
-        <p className="text-sm text-gray-700 flex-grow">
-          {displayDescription}
-        </p>
+        <p className="text-sm text-gray-300 flex-grow">{displayDescription}</p>
 
         {/* Toggle "Read More" if needed */}
         {item.description.length > 100 && (
@@ -82,7 +79,7 @@ function ContentCard({ item }) {
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm px-5 py-2 rounded-md"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm px-5 py-2 rounded-md"
             >
               View Resource
             </a>
@@ -99,23 +96,19 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Search & Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [categories, setCategories] = useState([]);
 
-  // Pagination state
   const [page, setPage] = useState(1);
   const limit = 10;
   const [nextDisabled, setNextDisabled] = useState(false);
 
-  // Get token on mount.
   useEffect(() => {
     const t = localStorage.getItem("userToken");
     if (t) setToken(t);
   }, []);
 
-  // Fetch distinct categories.
   useEffect(() => {
     if (!token) return;
     const fetchCategories = async () => {
@@ -129,7 +122,6 @@ export default function ContentPage() {
     fetchCategories();
   }, [token]);
 
-  // Fetch content based on filters and pagination.
   const fetchContent = async () => {
     setLoading(true);
     setError("");
@@ -143,7 +135,6 @@ export default function ContentPage() {
       } else if (searchTerm.trim() !== "") {
         url = `/api/content/search?q=${encodeURIComponent(searchTerm)}`;
         const data = await apiFetch(url, { method: "GET" });
-        // Client-side pagination for search results.
         const results = data.results || [];
         const start = (page - 1) * limit;
         const paginated = results.slice(start, start + limit);
@@ -166,7 +157,6 @@ export default function ContentPage() {
     if (token) fetchContent();
   }, [token, searchTerm, selectedCategory, page]);
 
-  // When filters change, reset page and refetch content.
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
@@ -188,8 +178,8 @@ export default function ContentPage() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-6 text-gray-800">Content Library</h1>
+      <div className="max-w-7xl mx-auto p-6 bg-gray-900 text-white">
+        <h1 className="text-4xl font-bold mb-6 text-white">Content Library</h1>
 
         {/* Search & Filter */}
         <form
@@ -199,14 +189,14 @@ export default function ContentPage() {
           <input
             type="text"
             placeholder="Search content..."
-            className="w-full md:w-1/2 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full md:w-1/2 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-900"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <select
             value={selectedCategory}
             onChange={handleCategoryChange}
-            className="w-full md:w-1/4 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full md:w-1/4 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-900"
           >
             <option value="All">All Categories</option>
             {categories.map((cat) => (
@@ -228,9 +218,9 @@ export default function ContentPage() {
 
         {/* Content Cards */}
         {loading ? (
-          <p className="text-gray-600">Loading content...</p>
+          <p className="text-gray-500">Loading content...</p>
         ) : contentList.length === 0 ? (
-          <p className="text-gray-500 italic">No content found.</p>
+          <p className="text-gray-400 italic">No content found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {contentList.map((item) => (

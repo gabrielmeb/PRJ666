@@ -38,7 +38,6 @@ export default function CommunityIndexPage() {
             searchQuery
           )}&page=${currentPage}&limit=${limit}`;
           data = await apiFetch(url, { method: "GET" });
-          // Expected response: { page, limit, totalPages, totalCount, communities }
           setCommunities(data.communities || []);
           setTotalPages(data.totalPages);
         } else {
@@ -65,7 +64,6 @@ export default function CommunityIndexPage() {
         const data = await apiFetch("/api/user-communities/user", {
           method: "GET",
         });
-        // Each membership object contains community_id (with _id)
         const joinedIds = data.map((mem) => mem.community_id._id);
         setJoinedCommunities(joinedIds);
       } catch (err) {
@@ -75,7 +73,6 @@ export default function CommunityIndexPage() {
     fetchJoined();
   }, [token]);
 
-  // Handler to join a community.
   const joinCommunity = async (communityId) => {
     try {
       await apiFetch("/api/user-communities", {
@@ -89,7 +86,6 @@ export default function CommunityIndexPage() {
     }
   };
 
-  // Handler to leave a community.
   const leaveCommunity = async (communityId) => {
     const confirmed = window.confirm(
       "Are you sure you want to leave this community?"
@@ -107,7 +103,6 @@ export default function CommunityIndexPage() {
     }
   };
 
-  // Handle search form submission
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setCurrentPage(1); // Reset to first page on new search
@@ -115,7 +110,7 @@ export default function CommunityIndexPage() {
 
   return (
     <Layout>
-      <div className="p-4 max-w-3xl mx-auto">
+      <div className="p-4 max-w-3xl mx-auto text-white">
         <h1 className="text-2xl font-bold mb-4">Communities</h1>
         <form onSubmit={handleSearchSubmit} className="mb-4 flex gap-2">
           <input
@@ -123,9 +118,9 @@ export default function CommunityIndexPage() {
             placeholder="Search communities..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-grow border p-2 rounded"
+            className="flex-grow border p-2 rounded bg-zinc-700 text-white"
           />
-          <button type="submit" className="bg-blue-500 text-white px-3 py-2 rounded">
+          <button type="submit" className="bg-blue-600 text-white px-3 py-2 rounded">
             Search
           </button>
         </form>
@@ -139,7 +134,7 @@ export default function CommunityIndexPage() {
             return (
               <li
                 key={comm._id}
-                className="border p-3 rounded flex justify-between items-center"
+                className="border p-3 rounded bg-zinc-800 flex justify-between items-center"
               >
                 <div>
                   <Link
@@ -148,20 +143,20 @@ export default function CommunityIndexPage() {
                   >
                     {comm.name}
                   </Link>
-                  <p className="text-sm">{comm.description}</p>
+                  <p className="text-sm text-gray-400">{comm.description}</p>
                 </div>
                 <div>
                   {joined ? (
                     <button
                       onClick={() => leaveCommunity(comm._id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded"
+                      className="bg-red-600 text-white px-3 py-1 rounded"
                     >
                       Leave
                     </button>
                   ) : (
                     <button
                       onClick={() => joinCommunity(comm._id)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded"
+                      className="bg-blue-600 text-white px-3 py-1 rounded"
                     >
                       Join
                     </button>
@@ -179,11 +174,11 @@ export default function CommunityIndexPage() {
               setCurrentPage((prev) => Math.max(prev - 1, 1))
             }
             disabled={currentPage === 1}
-            className="bg-gray-300 px-3 py-1 rounded"
+            className="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-1 rounded disabled:opacity-50"
           >
             Previous
           </button>
-          <span>
+          <span className="text-white">
             Page {currentPage} of {totalPages}
           </span>
           <button
@@ -191,7 +186,7 @@ export default function CommunityIndexPage() {
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
             disabled={currentPage === totalPages}
-            className="bg-gray-300 px-3 py-1 rounded"
+            className="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-1 rounded disabled:opacity-50"
           >
             Next
           </button>

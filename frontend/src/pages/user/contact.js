@@ -43,12 +43,12 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
+      <div className="bg-zinc-800 p-8 rounded-lg shadow-lg max-w-md w-full">
         <div className="text-purple-600 mb-4 flex items-center justify-center">
           <RiMailLine size={50} />
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+        <h1 className="text-2xl font-bold text-white mb-4 text-center">
           Contact Admin
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,7 +58,7 @@ export default function ContactPage() {
             placeholder="Your Name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full border border-gray-600 rounded px-4 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
           />
           <input
             type="email"
@@ -66,7 +66,7 @@ export default function ContactPage() {
             placeholder="Your Email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full border border-gray-600 rounded px-4 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
           />
           <input
             type="text"
@@ -74,14 +74,14 @@ export default function ContactPage() {
             placeholder="Subject"
             value={formData.subject}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full border border-gray-600 rounded px-4 py-2 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
           />
           <textarea
             name="message"
             placeholder="Your Message"
             value={formData.message}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full border border-gray-600 rounded px-4 py-2 h-32 resize-none bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
           ></textarea>
           <button
             type="submit"

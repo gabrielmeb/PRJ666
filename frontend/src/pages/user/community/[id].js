@@ -55,7 +55,6 @@ export default function CommunityDetailsPage() {
         const data = await apiFetch("/api/user-communities/user", {
           method: "GET",
         });
-        // Check if any membership's community_id matches the current id
         const isMember = data.some(
           (mem) =>
             mem.community_id._id.toString() === id ||
@@ -79,7 +78,6 @@ export default function CommunityDetailsPage() {
           `/api/user-communities/community/${id}?page=${memberPage}&limit=${memberLimit}`,
           { method: "GET" }
         );
-        // Expected response: { page, limit, totalPages, totalMembers, members }
         setMembers(data.members || []);
         setTotalMemberPages(data.totalPages || 1);
       } catch (err) {
@@ -91,9 +89,8 @@ export default function CommunityDetailsPage() {
     fetchMembers();
   }, [id, memberPage]);
 
-  // Handler to join community (only if not already a member)
   const joinCommunity = async () => {
-    if (joined) return; // Prevent joining if already a member
+    if (joined) return;
     try {
       await apiFetch("/api/user-communities", {
         method: "POST",
@@ -101,13 +98,11 @@ export default function CommunityDetailsPage() {
         body: JSON.stringify({ community_id: id }),
       });
       setJoined(true);
-      // Optionally update local community state if needed
     } catch (err) {
       console.error("Failed to join community", err);
     }
   };
 
-  // Handler to leave community
   const leaveCommunity = async () => {
     const confirmed = window.confirm(
         "Are you sure you want to leave this community?"
@@ -116,7 +111,6 @@ export default function CommunityDetailsPage() {
     try {
       await apiFetch(`/api/user-communities/${id}`, { method: "DELETE" });
       setJoined(false);
-      // Optionally update local community state if needed
     } catch (err) {
       console.error("Failed to leave community", err);
     }
@@ -124,7 +118,7 @@ export default function CommunityDetailsPage() {
 
   return (
     <Layout>
-      <div className="p-4 max-w-3xl mx-auto">
+      <div className="p-4 max-w-3xl mx-auto text-white">
         {loadingCommunity ? (
           <p>Loading community details...</p>
         ) : community ? (
@@ -136,7 +130,10 @@ export default function CommunityDetailsPage() {
                 <div className="mt-2">
                   <strong>Tags:</strong>{" "}
                   {community.tags.map((tag, idx) => (
-                    <span key={idx} className="mr-2 bg-gray-200 px-2 py-1 rounded">
+                    <span
+                      key={idx}
+                      className="mr-2 bg-zinc-700 px-2 py-1 rounded"
+                    >
                       {tag}
                     </span>
                   ))}
@@ -146,14 +143,14 @@ export default function CommunityDetailsPage() {
                 {joined ? (
                   <button
                     onClick={leaveCommunity}
-                    className="bg-red-500 text-white px-4 py-2 rounded"
+                    className="bg-red-600 text-white px-4 py-2 rounded"
                   >
                     Leave Community
                   </button>
                 ) : (
                   <button
                     onClick={joinCommunity}
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                    className="bg-blue-600 text-white px-4 py-2 rounded"
                   >
                     Join Community
                   </button>
@@ -172,13 +169,13 @@ export default function CommunityDetailsPage() {
                   {members.map((member) => (
                     <li
                       key={member._id}
-                      className="border p-2 rounded flex items-center"
+                      className="border p-2 rounded bg-zinc-800 flex items-center"
                     >
                       <div>
                         <p className="font-medium">
                           {member.userData.first_name} {member.userData.last_name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                           {member.userData.email}
                         </p>
                       </div>
@@ -192,11 +189,11 @@ export default function CommunityDetailsPage() {
                     setMemberPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={memberPage === 1}
-                  className="bg-gray-300 px-3 py-1 rounded"
+                  className="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-1 rounded disabled:opacity-50"
                 >
                   Previous
                 </button>
-                <span>
+                <span className="text-white">
                   Page {memberPage} of {totalMemberPages}
                 </span>
                 <button
@@ -206,7 +203,7 @@ export default function CommunityDetailsPage() {
                     )
                   }
                   disabled={memberPage === totalMemberPages}
-                  className="bg-gray-300 px-3 py-1 rounded"
+                  className="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-1 rounded disabled:opacity-50"
                 >
                   Next
                 </button>

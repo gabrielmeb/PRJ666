@@ -3,15 +3,15 @@ import { RiAlertLine } from "react-icons/ri";
 
 export default function WarningPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6 text-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
-      <div className="flex justify-center items-center mb-4">
-      <RiAlertLine size={96} className="text-red-600" />
-    </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6 text-center">
+      <div className="bg-zinc-800 p-8 rounded-lg shadow-lg max-w-md">
+        <div className="flex justify-center items-center mb-4">
+          <RiAlertLine size={96} className="text-red-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-4">
           Warning: Restricted Area
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-300 mb-6">
           You are about to enter an administrative space. Proceed with caution.
         </p>
         <div className="flex flex-col space-y-4">
