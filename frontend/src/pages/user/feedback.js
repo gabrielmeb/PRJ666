@@ -1,3 +1,4 @@
+// feedback.js
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { apiFetch } from "@/utils/api";
@@ -11,10 +12,10 @@ export default function FeedbackPage() {
   const [content, setContent] = useState("");
   const [rating, setRating] = useState(5);
 
-  // For updating
+  // For updating feedback
   const [editId, setEditId] = useState(null);
   const [editContent, setEditContent] = useState("");
-  const [editRating, setEditRating] = useState(0);
+  const [editRating, setEditRating] = useState(5);
 
   useEffect(() => {
     const t = localStorage.getItem("userToken");
@@ -25,7 +26,7 @@ export default function FeedbackPage() {
     }
   }, []);
 
-  // Get your feedback
+  // Fetch user’s existing feedback
   useEffect(() => {
     if (!token || !userId) return;
     const fetchFeedback = async () => {
@@ -34,15 +35,9 @@ export default function FeedbackPage() {
         const data = await apiFetch(`/api/feedback/user/${userId}`, {
           method: "GET",
         });
-        // If data is an array, set it directly; otherwise, default to an empty array.
         setFeedbacks(Array.isArray(data) ? data : []);
       } catch (err) {
-        // Handle error: if the error message indicates no feedback found,
-        // set feedbacks to an empty array.
-        if (
-          err.message.includes("404") ||
-          err.message.includes("No feedback found for this user")
-        ) {
+        if (err.message.includes("No feedback found")) {
           setFeedbacks([]);
         } else {
           console.error("Error fetching feedback:", err);
@@ -63,7 +58,6 @@ export default function FeedbackPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      // Assumes data.feedback is the newly created feedback item.
       setFeedbacks((prev) => [data.feedback, ...prev]);
       setContent("");
       setRating(5);
@@ -72,13 +66,14 @@ export default function FeedbackPage() {
     }
   };
 
+  // Start editing
   const startEdit = (fb) => {
     setEditId(fb._id);
     setEditContent(fb.content);
     setEditRating(fb.rating);
   };
 
-  // Update feedback
+  // Save edited feedback
   const handleUpdateFeedback = async (feedbackId) => {
     try {
       const body = { content: editContent, rating: Number(editRating) };
@@ -108,88 +103,132 @@ export default function FeedbackPage() {
 
   return (
     <Layout>
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Feedback</h1>
-        {loading && <p>Loading feedback...</p>}
+      <div className="max-w-3xl mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">Feedback</h1>
 
-        {/* Show a friendly message if there's no feedback */}
-        {!loading && feedbacks.length === 0 && (
-          <p className="text-sm text-gray-600">
-            No feedback available. Please submit your feedback.
-          </p>
-        )}
+        {/* Form to submit new feedback */}
+        <div className="bg-white rounded shadow p-4 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Leave New Feedback</h2>
+          <form onSubmit={handleSubmitFeedback} className="space-y-4">
+            <div>
+              <label className="block font-semibold mb-1">Feedback</label>
+              <textarea
+                className="border border-gray-300 rounded w-full p-2 focus:outline-none focus:border-blue-500"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Share your experience..."
+                required
+                minLength={10}
+                maxLength={1000}
+              />
+            </div>
 
-        {/* Submit new feedback */}
-        <form onSubmit={handleSubmitFeedback} className="mb-4 space-y-2">
-          <textarea
-            placeholder="Enter your feedback"
-            className="border p-2 w-full"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-          <input
-            type="number"
-            min={1}
-            max={10}
-            className="border p-2 w-full"
-            value={rating}
-            onChange={(e) => setRating(e.target.value)}
-          />
-          <button type="submit" className="bg-blue-500 text-white px-3 py-2 rounded">
-            Submit Feedback
-          </button>
-        </form>
+            <div>
+            <label className="block font-semibold mb-1">Rating (1–5)</label>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              step="1"
+              value={rating}
+              onChange={(e) => setRating(e.target.value)}
+              className="w-full max-w-sm"
+            />
+            <p className="text-start text-sm mt-1">
+              Selected rating: <span className="font-bold">{rating}</span>
+            </p>
+          </div>
 
-        <ul className="space-y-2">
-          {feedbacks.map((fb) => (
-            <li key={fb._id} className="border p-2 rounded">
-              {editId === fb._id ? (
-                <div className="space-y-2">
-                  <textarea
-                    className="border p-2 w-full"
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    className="border p-2 w-full"
-                    value={editRating}
-                    onChange={(e) => setEditRating(e.target.value)}
-                  />
-                  <button
-                    onClick={() => handleUpdateFeedback(fb._id)}
-                    className="bg-green-500 text-white px-3 py-1 rounded"
-                  >
-                    Save
-                  </button>
-                </div>
-              ) : (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p>{fb.content}</p>
-                    <p className="text-sm">Rating: {fb.rating}</p>
-                  </div>
-                  <div className="space-x-2">
+
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+
+        {/* Display user’s existing feedback */}
+        <div className="bg-white rounded shadow p-4">
+          <h2 className="text-xl font-semibold mb-4">Your Feedback</h2>
+          {loading && <p>Loading your feedback...</p>}
+
+          {!loading && feedbacks.length === 0 && (
+            <p className="text-gray-500">No feedback yet.</p>
+          )}
+
+          <ul className="space-y-4">
+            {feedbacks.map((fb) => (
+              <li key={fb._id} className="border border-gray-200 p-4 rounded">
+                {editId === fb._id ? (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Edit Content
+                      </label>
+                      <textarea
+                        className="border border-gray-300 rounded w-full p-2 focus:outline-none focus:border-blue-500"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        minLength={10}
+                        maxLength={1000}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Rating (1–5)
+                      </label>
+                      <select
+                        className="border border-gray-300 rounded p-2 w-20 focus:outline-none focus:border-blue-500"
+                        value={editRating}
+                        onChange={(e) => setEditRating(e.target.value)}
+                      >
+                        {[1, 2, 3, 4, 5].map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+
                     <button
-                      onClick={() => startEdit(fb)}
-                      className="bg-gray-500 text-white px-2 py-1 rounded"
+                      onClick={() => handleUpdateFeedback(fb._id)}
+                      className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
                     >
-                      Edit
+                      Save
                     </button>
                     <button
-                      onClick={() => handleDeleteFeedback(fb._id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      onClick={() => setEditId(null)}
+                      className="ml-2 bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400"
                     >
-                      Del
+                      Cancel
                     </button>
                   </div>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+                ) : (
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div className="mb-2 md:mb-0">
+                      <p className="text-base text-gray-700">{fb.content}</p>
+                      <p className="text-sm text-gray-500">Rating: {fb.rating}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => startEdit(fb)}
+                        className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFeedback(fb._id)}
+                        className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </Layout>
   );
