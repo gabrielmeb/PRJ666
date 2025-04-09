@@ -6,6 +6,7 @@ const { body } = require("express-validator");
 const {
   createCommunity,
   getAllCommunities,
+  searchCommunities,   // <-- Import searchCommunities controller
   getCommunityById,
   updateCommunity,
   deleteCommunity
@@ -25,7 +26,10 @@ router.post(
   createCommunity
 );
 
-// Get all communities (Public)
+// **** Add Search Route BEFORE Dynamic Route ****
+router.get("/search", searchCommunities);
+
+// Get all communities (Public) with pagination support in query string e.g., ?page=1&limit=10
 router.get("/", getAllCommunities);
 
 // Get a specific community by ID (Public)

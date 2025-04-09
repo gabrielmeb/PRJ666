@@ -1,116 +1,130 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
-import { apiFetch } from "@/utils/api"; 
+import Link from "next/link";
+import { apiFetch } from "@/utils/api";
 
 const Home = () => {
-  const [user, setUser] = useState(null);
-  const [goals, setGoals] = useState([]);
-  const [progress, setProgress] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const router = useRouter();
+  const [userProfile, setUserProfile] = useState(null);
+  const [goals, setGoals] = useState([]);
+  const [progress, setProgress] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get token and userId from localStorage to check authentication.
     const token = localStorage.getItem("userToken");
     const userId = localStorage.getItem("userId");
+
     if (!token || !userId) {
       router.push("/user/login");
       return;
     }
 
-    // Async function to fetch all user data.
-    async function fetchData() {
-      // Fetch User Profile
+    const fetchData = async () => {
       try {
-        const userProfile = await apiFetch(`/api/user-profiles/${userId}`);
-        setUser(userProfile);
-      } catch (error) {
-        console.error("Error fetching user profile:", error.message);
-      }
+        const profile = await apiFetch(`/api/user-profiles/${userId}`);
+        setUserProfile(profile);
 
-      // Fetch Goals
-      try {
-        const userGoals = await apiFetch(`/api/goals/user/${userId}`);
-        setGoals(userGoals);
-      } catch (error) {
-        console.error("Error fetching goals:", error.message);
-      }
+        const profileId = profile?._id || userId; // fallback
 
-      // Fetch Progress
-      try {
-        const userProgress = await apiFetch(`/api/progress/user/${userId}`);
-        setProgress(userProgress);
+        const [goals, progress, recommendations] = await Promise.all([
+          apiFetch(`/api/goals/user/${profileId}`),
+          apiFetch(`/api/progress/user/${userId}`),
+          apiFetch(`/api/recommendations/user/${userId}`)
+        ]);
+        setUserProfile(profile);
+        setGoals(goals);
+        setProgress(progress);
+        setRecommendations(recommendations);
       } catch (error) {
-        console.error("Error fetching progress:", error.message);
+        console.error("Error loading data:", error.message);
+      } finally {
+        setLoading(false);
       }
-
-      // Fetch AI Recommendations
-      try {
-        const userRecommendations = await apiFetch(`/api/recommendations/user/${userId}`);
-        setRecommendations(userRecommendations);
-      } catch (error) {
-        console.error("Error fetching recommendations:", error.message);
-      }
-
-      // Fetch Notifications
-      try {
-        const notifData = await apiFetch("/api/notifications");
-        setNotifications(notifData.notifications || []);
-      } catch (error) {
-        console.error("Error fetching notifications:", error.message);
-      }
-    }
+    };
 
     fetchData();
   }, [router]);
 
+  const getFirstName = () => userProfile?.user_id?.first_name || "User";
+
+  const averageProgress = () => {
+    if (!progress.length) return 0;
+    const total = progress.reduce((sum, p) => sum + (p.progress_percentage || 0), 0);
+    return Math.round(total / progress.length);
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <p className="text-center text-lg text-gray-500">Loading your dashboard...</p>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-gray-800">
-        Welcome, {user?.user_id?.first_name} 👋
-      </h1>
-      <p className="text-gray-500">Here&apos;s your progress and recommendations.</p>
+      <div className="space-y-6">
+        <header>
+          <h1 className="text-3xl font-bold text-gray-800">Welcome, {getFirstName()} 👋</h1>
+          <p className="text-gray-500 mt-1">Here&apso;s your personalized overview</p>
+        </header>
 
-      {/* Goal Progress */}
-      <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold">Goal Progress</h2>
-        <div className="mt-4 bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-purple-600 h-4 rounded-full"
-            style={{
-              width: `${progress ? progress[0]?.progress_percentage || 0 : 0}%`
-            }}
-          ></div>
-        </div>
-        <p className="text-gray-600 mt-2">
-          {progress ? progress[0]?.progress_percentage || 0 : 0}% completed
-        </p>
-      </div>
+        {/* Goals Section */}
+        <section className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-2">Your Goals</h2>
+          {goals.length > 0 ? (
+            <ul className="list-disc pl-5 space-y-1 text-gray-700">
+              {goals.slice(0, 3).map((goal) => (
+                <li key={goal._id}>{goal.description}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">
+              You haven&apos;t set any goals yet.{" "}
+              <Link href="/user/goals" className="text-blue-600 hover:underline font-medium">Set Goals</Link>
+            </p>
+          )}
+        </section>
 
-      {/* Recommendations */}
-      {/* 
-      <div className="mt-6 grid grid-cols-3 gap-4">
-        {recommendations.map((rec, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">{rec.type}</h3>
-            <p>{rec.content}</p>
-          </div>
-        ))}
-      </div>
+        {/* Progress Section */}
+        <section className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-2">Progress Overview</h2>
+          {progress.length > 0 ? (
+            <>
+              <div className="w-full bg-gray-200 rounded-full h-4">
+                <div
+                  className="bg-green-500 h-4 rounded-full transition-all duration-300"
+                  style={{ width: `${averageProgress()}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-700 mt-2">{averageProgress()}% average progress</p>
+            </>
+          ) : (
+            <p className="text-gray-600">
+              No progress data available.{" "}
+              <Link href="/user/goals" className="text-blue-600 hover:underline font-medium">Start Tracking Progress</Link>
+            </p>
+          )}
+        </section>
 
-      {/* Notifications */}
-      {/*
-      <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold">Notifications</h2>
-        <ul className="mt-2 text-gray-600">
-          {notifications.map((note, index) => (
-            <li key={index}>{note.message}</li>
-          ))}
-        </ul>
+        {/* Recommendations Section */}
+        <section className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-2">AI Recommendations</h2>
+          {recommendations.length > 0 ? (
+            <ul className="list-disc pl-5 space-y-1 text-gray-700">
+              {recommendations.slice(0, 3).map((rec) => (
+                <li key={rec._id}>{rec.content}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">
+              No recommendations available yet. Keep using the platform to receive personalized suggestions.
+            </p>
+          )}
+        </section>
       </div>
-      */}
     </Layout>
   );
 };

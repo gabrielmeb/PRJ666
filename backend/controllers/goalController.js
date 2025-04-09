@@ -5,6 +5,7 @@ const { validationResult } = require("express-validator");
 // @desc    Create a new goal
 // @route   POST /api/goals
 // @access  Private
+// In goalController.js - createGoal
 const createGoal = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -13,10 +14,11 @@ const createGoal = async (req, res, next) => {
     }
 
     const { description } = req.body;
-    const userId = req.user._id;
+    // Use the user's profile if present, otherwise fallback to user id
+    const currentProfile = req.user.profile ? req.user.profile : req.user._id;
 
     const newGoal = await Goal.create({
-      profile_id: userId,
+      profile_id: currentProfile,
       description,
       status: "Pending",
       progress: null
@@ -27,6 +29,7 @@ const createGoal = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // @desc    Get all goals (Admin Only, with Pagination)
 // @route   GET /api/goals
@@ -73,6 +76,7 @@ const getGoalsByUserId = async (req, res, next) => {
 // @desc    Update goal details
 // @route   PUT /api/goals/:goalId
 // @access  Private
+// In goalController.js - updateGoal
 const updateGoal = async (req, res, next) => {
   try {
     const { status, progress, description } = req.body;
@@ -82,33 +86,35 @@ const updateGoal = async (req, res, next) => {
       return res.status(404).json({ message: "Goal not found" });
     }
 
-    // Allow only the owner to update the goal
-    if (goal.profile_id.toString() !== req.user._id.toString()) {
+    // Determine current user’s profile ID
+    const currentProfileId = req.user.profile
+      ? req.user.profile.toString()
+      : req.user._id.toString();
+
+    // Check ownership using profile_id (stored in goal)
+    if (goal.profile_id.toString() !== currentProfileId) {
       return res.status(403).json({ message: "Unauthorized to update this goal" });
     }
 
-    // if (status) goal.status = status;
-    
-    // Append new progress if provided instead of overwriting
-    // if (progress) {
-    //   goal.progress.push(progress);
-    // }
-
-    if(description){
-      goal.description = description
+    if (description) {
+      goal.description = description;
+    }
+    if (status) {
+      goal.status = status;
     }
 
     await goal.save();
     res.status(200).json({ message: "Goal updated successfully", goal });
   } catch (error) {
-    console.log("ABOSDHJKFLGSHG ABOBA ABOBA HUY")
     next(error);
   }
 };
 
+
 // @desc    Delete a goal
 // @route   DELETE /api/goals/:goalId
 // @access  Private
+// In goalController.js - deleteGoal
 const deleteGoal = async (req, res, next) => {
   try {
     const goal = await Goal.findById(req.params.goalId);
@@ -117,8 +123,11 @@ const deleteGoal = async (req, res, next) => {
       return res.status(404).json({ message: "Goal not found" });
     }
 
-    // Allow only the owner to delete the goal
-    if (goal.profile_id.toString() !== req.user._id.toString()) {
+    const currentProfileId = req.user.profile
+      ? req.user.profile.toString()
+      : req.user._id.toString();
+
+    if (goal.profile_id.toString() !== currentProfileId) {
       return res.status(403).json({ message: "Unauthorized to delete this goal" });
     }
 
@@ -128,6 +137,7 @@ const deleteGoal = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // @desc    Update goal progress
 // @route   PUT /api/goals/:goalId/progress

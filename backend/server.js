@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const http = require("http");
+// const http = require("http");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const mongoSanitize = require("express-mongo-sanitize");
@@ -30,23 +30,23 @@ const userProfileRoutes = require("./routes/userProfileRoutes");
 // Initialize Express App
 const app = express();
 
-const server = http.createServer(app);
-const io = require("socket.io")(server, {
-  cors: { origin: process.env.FRONTEND_URL || "*" }
-});
+// const server = http.createServer(app);
+// const io = require("socket.io")(server, {
+//   cors: { origin: process.env.FRONTEND_URL || "*" }
+// });
 
-// Make io available in req handlers
-app.set("io", io);
+// // Make io available in req handlers
+// app.set("io", io);
 
-// Socket.io logic
-io.on("connection", socket => {
-  socket.on("joinCommunity", communityId => {
-    socket.join(communityId);
-  });
-  socket.on("leaveCommunity", communityId => {
-    socket.leave(communityId);
-  });
-});
+// // Socket.io logic
+// io.on("connection", socket => {
+//   socket.on("joinCommunity", communityId => {
+//     socket.join(communityId);
+//   });
+//   socket.on("leaveCommunity", communityId => {
+//     socket.leave(communityId);
+//   });
+// });
 
 // Database Connection
 dbConnect();

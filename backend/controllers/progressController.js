@@ -5,6 +5,7 @@ const { validationResult } = require("express-validator");
 // @desc    Create a progress entry
 // @route   POST /api/progress
 // @access  Private
+// In progressController.js - createProgress
 const createProgress = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -13,17 +14,21 @@ const createProgress = async (req, res, next) => {
     }
 
     const { goal_id, progress_percentage, milestones, notes } = req.body;
-    const userId = req.user._id;
+    // Use current user's profile id
+    const currentProfileId = req.user.profile
+      ? req.user.profile.toString()
+      : req.user._id.toString();
 
     const goal = await Goal.findById(goal_id);
     if (!goal) return res.status(404).json({ message: "Goal not found" });
 
-    if (goal.user_id.toString() !== userId.toString()) {
+    // Check ownership using goal.profile_id against currentProfileId
+    if (goal.profile_id.toString() !== currentProfileId) {
       return res.status(403).json({ message: "Unauthorized to add progress to this goal" });
     }
 
     const newProgress = await Progress.create({
-      user_id: userId,
+      profile_id: currentProfileId,
       goal_id,
       progress_percentage,
       milestones: milestones || [],
@@ -35,6 +40,7 @@ const createProgress = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // @desc    Get all progress entries (Admin Only, with Pagination)
 // @route   GET /api/progress
@@ -99,6 +105,7 @@ const getProgressByGoalId = async (req, res, next) => {
 // @desc    Update a progress entry
 // @route   PUT /api/progress/:progressId
 // @access  Private
+// In progressController.js - updateProgress
 const updateProgress = async (req, res, next) => {
   try {
     const { progress_percentage, milestones, notes } = req.body;
@@ -108,18 +115,21 @@ const updateProgress = async (req, res, next) => {
       return res.status(404).json({ message: "Progress entry not found" });
     }
 
-    if (progress.user_id.toString() !== req.user._id.toString()) {
+    const currentProfileId = req.user.profile
+      ? req.user.profile.toString()
+      : req.user._id.toString();
+
+    if (progress.profile_id.toString() !== currentProfileId) {
       return res.status(403).json({ message: "Unauthorized to update this progress entry" });
     }
 
     if (progress_percentage !== undefined) {
       progress.progress_percentage = Math.min(progress_percentage, 100);
     }
-
     if (milestones) {
-      progress.milestones.push(...milestones); // Append milestones instead of overwriting
+      // Append milestones rather than replacing completely. Adjust according to your business logic.
+      progress.milestones.push(...milestones);
     }
-
     if (notes) {
       progress.notes = notes;
     }
@@ -131,9 +141,11 @@ const updateProgress = async (req, res, next) => {
   }
 };
 
+
 // @desc    Delete a progress entry
 // @route   DELETE /api/progress/:progressId
 // @access  Private
+// In progressController.js - deleteProgress
 const deleteProgress = async (req, res, next) => {
   try {
     const progress = await Progress.findById(req.params.progressId);
@@ -142,7 +154,11 @@ const deleteProgress = async (req, res, next) => {
       return res.status(404).json({ message: "Progress entry not found" });
     }
 
-    if (progress.user_id.toString() !== req.user._id.toString()) {
+    const currentProfileId = req.user.profile
+      ? req.user.profile.toString()
+      : req.user._id.toString();
+
+    if (progress.profile_id.toString() !== currentProfileId) {
       return res.status(403).json({ message: "Unauthorized to delete this progress entry" });
     }
 
@@ -152,6 +168,7 @@ const deleteProgress = async (req, res, next) => {
     next(error);
   }
 };
+
 
 module.exports = {
   createProgress,
