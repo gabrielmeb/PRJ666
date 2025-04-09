@@ -75,7 +75,7 @@ export default function GoalsPage() {
       // 3. Fetch progress (treat 404 as “no progress”)
       let progressList = [];
       try {
-        progressList = await apiFetch(`/api/progress/user/${uid}`);
+        progressList = await apiFetch(`/api/progress/user/${pid}`);
       } catch (err) {
         if (err.message.toLowerCase().includes("no progress")) {
           // no progress found: fine, leave progressList empty

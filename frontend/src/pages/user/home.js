@@ -68,7 +68,7 @@ const Home = () => {
       <div className="space-y-6">
         <header>
           <h1 className="text-3xl font-bold text-gray-800">Welcome, {getFirstName()} 👋</h1>
-          <p className="text-gray-500 mt-1">Here&apso;s your personalized overview</p>
+          <p className="text-gray-500 mt-1">Here's your personalized overview</p>
         </header>
 
         {/* Goals Section */}
