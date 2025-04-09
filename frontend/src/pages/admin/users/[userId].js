@@ -125,78 +125,142 @@ export default function UserDetailsPage() {
   // RENDER
   return (
     <AdminLayout>
-      <div className="bg-white rounded shadow p-4">
-        <h1 className="text-2xl font-bold mb-4">User Details</h1>
+      <div className="min-h-screen bg-black p-6">
+        {/* User Info Section */}
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+          <h1 className="text-3xl font-bold text-white mb-4">User Details</h1>
 
-        {/* User Info */}
-        {loadingUser ? (
-          <p>Loading user data...</p>
-        ) : userError ? (
-          <p className="text-red-600">{userError}</p>
-        ) : user ? (
-          <div>
-            <h2 className="text-xl font-semibold">{user.first_name} {user.last_name}</h2>
-            <p className="text-gray-700 mt-2">Email: {user.email}</p>
-            {/* Show date_of_birth or other fields if you have them (and are allowed to show) */}
-            {user.date_of_birth && (
-              <p className="text-gray-700">
-                Date of birth: {new Date(user.date_of_birth).toLocaleDateString()}
-              </p>
-            )}
-            {/* If user has a role, preferences, etc. */}
-            {user.preferences && user.preferences.length > 0 && (
-              <p className="mt-2">
-                <span className="font-semibold">Preferences:</span>{" "}
-                {user.preferences.join(", ")}
-              </p>
-            )}
-            {/* Add any additional fields you want to show */}
-          </div>
-        ) : (
-          <p className="text-gray-500">User not found.</p>
-        )}
-      </div>
+          {loadingUser ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+          ) : userError ? (
+            <div className="bg-red-900 text-red-100 p-3 rounded-md mb-4 border border-red-700">
+              {userError}
+            </div>
+          ) : user ? (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {user.first_name} {user.last_name}
+              </h2>
+              <div className="space-y-2">
+                <p className="text-gray-300">
+                  <span className="text-gray-400 font-medium">Email:</span> {user.email}
+                </p>
+                {/* Show date_of_birth or other fields if you have them (and are allowed to show) */}
+                {user.date_of_birth && (
+                  <p className="text-gray-300">
+                    <span className="text-gray-400 font-medium">Date of birth:</span>{" "}
+                    {new Date(user.date_of_birth).toLocaleDateString()}
+                  </p>
+                )}
+                {/* If user has a role, preferences, etc. */}
+                {user.preferences && user.preferences.length > 0 && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-gray-400 font-medium">Preferences:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {user.preferences.map((pref) => (
+                        <span 
+                          key={pref} 
+                          className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm"
+                        >
+                          {pref}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-300">User not found</h3>
+            </div>
+          )}
+        </div>
 
-      {/* Communities Section */}
-      <div className="bg-white rounded shadow p-4 mt-4">
-        <h2 className="text-xl font-bold mb-4">Communities Joined</h2>
-        {loadingCommunities ? (
-          <p>Loading user communities...</p>
-        ) : communitiesError ? (
-          <p className="text-red-600">{communitiesError}</p>
-        ) : communities.length === 0 ? (
-          <p>This user hasn&apos;t joined any community.</p>
-        ) : (
-          <table className="w-full border">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-2 text-left">Community Name</th>
-                <th className="p-2 text-left">Joined At</th>
-                {/* Add more columns if you store them (e.g. roleInCommunity) */}
-              </tr>
-            </thead>
-            <tbody>
-              {communities.map((membership) => {
-                // Suppose membership.community_id is an object with ._id, .name, etc.
-                const comm = membership.community_id || {};
-                return (
-                  <tr key={membership._id} className="border-b">
-                    <td className="p-2 font-semibold underline">
-                    <Link href={`/admin/communities/${comm._id}`}>
-                    {comm.name || "Unknown"}
-                    </Link>
-                  </td>
-                    <td className="p-2">
-                      {membership.joinedAt
-                        ? new Date(membership.joinedAt).toLocaleString()
-                        : "N/A"}
-                    </td>
+        {/* Communities Section */}
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Communities Joined <span className="text-purple-400">({communities.length})</span>
+          </h2>
+
+          {loadingCommunities ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+          ) : communitiesError ? (
+            <div className="bg-red-900 text-red-100 p-3 rounded-md mb-4 border border-red-700">
+              {communitiesError}
+            </div>
+          ) : communities.length === 0 ? (
+            <div className="text-center py-8">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-300">
+                This user hasn't joined any community
+              </h3>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="p-3 text-left text-gray-400 font-medium">Community Name</th>
+                    <th className="p-3 text-left text-gray-400 font-medium">Joined At</th>
+                    {/* Add more columns if you store them (e.g. roleInCommunity) */}
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+                </thead>
+                <tbody>
+                  {communities.map((membership) => {
+                    const comm = membership.community_id || {};
+                    return (
+                      <tr key={membership._id} className="border-b border-gray-800 hover:bg-gray-800">
+                        <td className="p-3 font-medium text-white">
+                          <Link 
+                            href={`/admin/communities/${comm._id}`}
+                            className="hover:text-purple-400 hover:underline"
+                          >
+                            {comm.name || "Unknown"}
+                          </Link>
+                        </td>
+                        <td className="p-3 text-gray-400">
+                          {membership.joinedAt
+                            ? new Date(membership.joinedAt).toLocaleString()
+                            : "N/A"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </AdminLayout>
   );

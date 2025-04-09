@@ -175,135 +175,182 @@ export default function CommunityDetailsPage() {
   // RENDER
   return (
     <AdminLayout>
-      <div className="bg-white rounded shadow p-4">
-        <h1 className="text-2xl font-bold mb-4">Community Details</h1>
+      <div className="min-h-screen bg-black p-6">
+        {/* Community Info Section */}
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+          <h1 className="text-3xl font-bold text-white mb-4">Community Details</h1>
 
-        {/* Community Info */}
-        {loadingCommunity ? (
-          <p>Loading community details...</p>
-        ) : error ? (
-          <p className="text-red-600">Error: {error}</p>
-        ) : community ? (
-          <div>
-            <h2 className="text-xl font-semibold">{community.name}</h2>
-            <p className="mt-2 text-gray-600">{community.description}</p>
-            {community.tags?.length > 0 && (
-              <div className="mt-2">
-                <span className="font-medium">Tags:</span> {community.tags.join(", ")}
-              </div>
-            )}
-          </div>
-        ) : (
-          <p>Community not found.</p>
-        )}
-      </div>
-
-      {/* Members Table */}
-      <div className="bg-white rounded shadow p-4 mt-4">
-        <h2 className="text-xl font-bold mb-4">Community Members &#40;{totalMembers}&#41;</h2>
-
-        {loadingMembers ? (
-          <p>Loading members...</p>
-        ) : membersError ? (
-          <p className="text-red-600">{membersError}</p>
-        ) : (
-          <>
-            {/* Table */}
-            <table className="w-full border">
-              <thead>
-                <tr className="bg-gray-100 border-b">
-                  <th className="p-2 text-left">
-                    <button
-                      onClick={() => handleSort("name")}
-                      className="font-semibold focus:outline-none"
-                    >
-                      Name
-                      {sortField === "name" && (
-                        sortDirection === "asc" ? " ↑" : " ↓"
-                      )}
-                    </button>
-                  </th>
-                  <th className="p-2 text-left">
-                    <button
-                      onClick={() => handleSort("email")}
-                      className="font-semibold focus:outline-none"
-                    >
-                      Email
-                      {sortField === "email" && (
-                        sortDirection === "asc" ? " ↑" : " ↓"
-                      )}
-                    </button>
-                  </th>
-                  <th className="p-2 text-left">
-                    <button
-                      onClick={() => handleSort("joinedAt")}
-                      className="font-semibold focus:outline-none"
-                    >
-                      Joined At
-                      {sortField === "joinedAt" && (
-                        sortDirection === "asc" ? " ↑" : " ↓"
-                      )}
-                    </button>
-                  </th>
-                  <th className="p-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((membership) => {
-                  // membership.userData from the aggregation pipeline
-                  // or membership.user_id, etc. 
-                  const user = membership.userData;
-                  return (
-                    <tr key={membership._id} className="border-b">
-                      <td className="p-2 font-semibold underline">
-                        <Link href={`/admin/users/${user._id}`}>
-                          {user.first_name} {user.last_name}
-                        </Link>
-                        </td>
-                      <td className="p-2">{user.email}</td>
-                      <td className="p-2">
-                        {new Date(membership.joinedAt).toLocaleString()}
-                      </td>
-                      <td className="p-2">
-                        {currentAdmin && (currentAdmin.role === "SuperAdmin" || currentAdmin.role === "Admin") ? (
-                          <button
-                            onClick={() => handleRemoveUser(user._id)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                          >
-                            Remove
-                          </button>
-                        ) : (
-                          <span className="text-gray-400">N/A</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {/* Pagination Controls */}
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                disabled={page <= 1}
-                className="bg-gray-200 px-2 py-1 rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <span className="self-center">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((prev) => (prev < totalPages ? prev + 1 : prev))}
-                disabled={page >= totalPages}
-                className="bg-gray-200 px-2 py-1 rounded disabled:opacity-50"
-              >
-                Next
-              </button>
+          {loadingCommunity ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
             </div>
-          </>
-        )}
+          ) : error ? (
+            <div className="bg-red-900 text-red-100 p-3 rounded-md mb-4 border border-red-700">
+              Error: {error}
+            </div>
+          ) : community ? (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">{community.name}</h2>
+              <p className="text-gray-300 mb-4">{community.description}</p>
+              {community.tags?.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400 font-medium">Tags:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {community.tags.map((tag) => (
+                      <span 
+                        key={tag} 
+                        className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-300">Community not found</h3>
+            </div>
+          )}
+        </div>
+
+        {/* Members Table Section */}
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-white">
+              Community Members <span className="text-purple-400">({totalMembers})</span>
+            </h2>
+          </div>
+
+          {loadingMembers ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+          ) : membersError ? (
+            <div className="bg-red-900 text-red-100 p-3 rounded-md mb-4 border border-red-700">
+              {membersError}
+            </div>
+          ) : (
+            <>
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-800">
+                      <th className="p-3 text-left text-gray-400 font-medium">
+                        <button
+                          onClick={() => handleSort("name")}
+                          className="hover:text-purple-400 focus:outline-none flex items-center gap-1"
+                        >
+                          Name
+                          {sortField === "name" && (
+                            sortDirection === "asc" ? "↑" : "↓"
+                          )}
+                        </button>
+                      </th>
+                      <th className="p-3 text-left text-gray-400 font-medium">
+                        <button
+                          onClick={() => handleSort("email")}
+                          className="hover:text-purple-400 focus:outline-none flex items-center gap-1"
+                        >
+                          Email
+                          {sortField === "email" && (
+                            sortDirection === "asc" ? "↑" : "↓"
+                          )}
+                        </button>
+                      </th>
+                      <th className="p-3 text-left text-gray-400 font-medium">
+                        <button
+                          onClick={() => handleSort("joinedAt")}
+                          className="hover:text-purple-400 focus:outline-none flex items-center gap-1"
+                        >
+                          Joined At
+                          {sortField === "joinedAt" && (
+                            sortDirection === "asc" ? "↑" : "↓"
+                          )}
+                        </button>
+                      </th>
+                      <th className="p-3 text-left text-gray-400 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {members.map((membership) => {
+                      const user = membership.userData;
+                      return (
+                        <tr key={membership._id} className="border-b border-gray-800 hover:bg-gray-800">
+                          <td className="p-3 font-medium text-white">
+                            <Link 
+                              href={`/admin/users/${user._id}`}
+                              className="hover:text-purple-400 hover:underline"
+                            >
+                              {user.first_name} {user.last_name}
+                            </Link>
+                          </td>
+                          <td className="p-3 text-gray-300">{user.email}</td>
+                          <td className="p-3 text-gray-400">
+                            {new Date(membership.joinedAt).toLocaleString()}
+                          </td>
+                          <td className="p-3">
+                            {currentAdmin && (currentAdmin.role === "SuperAdmin" || currentAdmin.role === "Admin") ? (
+                              <button
+                                onClick={() => handleRemoveUser(user._id)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                              >
+                                Remove
+                              </button>
+                            ) : (
+                              <span className="text-gray-500">N/A</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="text-sm text-gray-400">
+                  Showing {(page - 1) * limit + 1} to {Math.min(page * limit, totalMembers)} of {totalMembers} members
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={page <= 1}
+                    className={`px-3 py-1 border border-gray-700 rounded text-sm ${page <= 1 ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-300">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((prev) => (prev < totalPages ? prev + 1 : prev))}
+                    disabled={page >= totalPages}
+                    className={`px-3 py-1 border border-gray-700 rounded text-sm ${page >= totalPages ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </AdminLayout>
   );
